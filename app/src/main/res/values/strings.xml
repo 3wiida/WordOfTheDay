@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Word of the day</string>
+    <string name="learn_something">Learn something\n</string>
+    <string name="_new">NEW</string>
+    <string name="change_mode">Change Mode</string>
+    <string name="search">Search</string>
+    <string name="search_placeholder">Search...</string>
+    <string name="word_icon">Word Icon</string>
+</resources>
