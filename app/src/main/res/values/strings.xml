@@ -6,4 +6,20 @@
     <string name="search">Search</string>
     <string name="search_placeholder">Search...</string>
     <string name="word_icon">Word Icon</string>
+    <string name="today_s_word">Today\'s Word</string>
+    <string name="random">Random</string>
+    <string name="listen">Listen</string>
+    <string name="star">star</string>
+    <string name="today">Today</string>
+    <string name="yesterday">Yesterday</string>
+    <string name="down_arrow">down arrow</string>
+    <string name="arrow_animation">Arrow Animation</string>
+    <string name="definition">- Definition</string>
+    <string name="example">- Example</string>
+    <string name="get_random_word">Get Random Word</string>
+    <string name="image">Image</string>
+    <string name="vocabulary_builder">Vocabulary Builder</string>
+    <string name="onboarding_des">This app helps you learn new\nwords, improve your vocabulary,\nand explore language</string>
+    <string name="get_started">GET STARTED</string>
+    <string name="right_arrow">right_arrow</string>
 </resources>

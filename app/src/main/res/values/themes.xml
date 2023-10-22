@@ -2,4 +2,12 @@
 <resources>
 
     <style name="Theme.WordOfTheDay" parent="android:Theme.Material.Light.NoActionBar" />
+
+    <style name="Theme.AppSplashScreen" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/splash_background_color</item>
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+        <item name="windowSplashScreenAnimationDuration">5000</item>
+        <item name="postSplashScreenTheme">@style/Theme.WordOfTheDay</item>
+    </style>
+
 </resources>

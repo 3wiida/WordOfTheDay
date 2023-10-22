@@ -5,7 +5,7 @@ import com.mahmoudibrahem.wordoftheday.domain.model.Word
 data class WordDto(
     val license: LicenseDto,
     val meanings: List<MeaningDto>,
-    val phonetic: String,
+    val phonetic: String?,
     val phonetics: List<PhoneticDto>,
     val sourceUrls: List<String>,
     val word: String

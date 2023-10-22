@@ -94,4 +94,13 @@ dependencies {
 
     //Lottie
     implementation("com.airbnb.android:lottie-compose:6.0.1")
+
+    // Pager and Indicators - Accompanist
+    implementation("com.google.accompanist:accompanist-pager:0.33.0-alpha")
+
+    //Splash Screen API
+    implementation("androidx.core:core-splashscreen:1.0.1")
+
+    //DataStore
+    implementation("androidx.datastore:datastore-preferences:1.1.0-alpha05")
 }

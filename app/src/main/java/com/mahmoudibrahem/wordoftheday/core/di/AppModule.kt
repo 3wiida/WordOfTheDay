@@ -1,9 +1,14 @@
 package com.mahmoudibrahem.wordoftheday.core.di
 
+import android.media.MediaPlayer
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import com.mahmoudibrahem.wordoftheday.data.remote.RandomWordAPI
 import com.mahmoudibrahem.wordoftheday.data.remote.WordAutocompleteAPI
 import com.mahmoudibrahem.wordoftheday.data.remote.WordsAPI
+import com.mahmoudibrahem.wordoftheday.data.repository.DataStoreRepositoryImpl
 import com.mahmoudibrahem.wordoftheday.data.repository.WordsRepositoryImpl
+import com.mahmoudibrahem.wordoftheday.domain.repository.DataStoreRepository
 import com.mahmoudibrahem.wordoftheday.domain.repository.WordsRepository
 import com.mahmoudibrahem.wordoftheday.domain.usecase.GetWordsSuggestionsUseCase
 import dagger.Module
@@ -25,6 +30,18 @@ object AppModule {
         wordAutocompleteAPI: WordAutocompleteAPI
     ): WordsRepository {
         return WordsRepositoryImpl(wordsAPI, randomWordAPI, wordAutocompleteAPI)
+    }
+
+    @Provides
+    @Singleton
+    fun provideDataStoreRepository(dataStore: DataStore<Preferences>): DataStoreRepository {
+        return DataStoreRepositoryImpl(dataStore)
+    }
+
+    @Provides
+    @Singleton
+    fun provideMediaPlayer(): MediaPlayer {
+        return MediaPlayer()
     }
 
 }
