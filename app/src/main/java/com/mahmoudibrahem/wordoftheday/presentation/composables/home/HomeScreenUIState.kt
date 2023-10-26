@@ -10,9 +10,9 @@ data class HomeScreenUIState constructor(
     val isSearchLoading: Boolean = false,
     val searchResults: List<Suggestion> = emptyList(),
     val screenMsg: String = "",
-    val isPageLoading: Boolean = true,
     val isGetRandomWordBtnLoading: Boolean = false,
     val todayWord: Word? = null,
     val yesterdayWord: Word? = null,
-    val randomWord: Word? = null
+    val randomWord: Word? = null,
+    val isDarkMode: Boolean = false,
 )

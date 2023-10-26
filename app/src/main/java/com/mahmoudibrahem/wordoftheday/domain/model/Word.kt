@@ -13,5 +13,4 @@ data class Word(
             false
         }
     }
-
 }

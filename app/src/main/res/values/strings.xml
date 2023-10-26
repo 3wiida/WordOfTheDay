@@ -22,4 +22,10 @@
     <string name="onboarding_des">This app helps you learn new\nwords, improve your vocabulary,\nand explore language</string>
     <string name="get_started">GET STARTED</string>
     <string name="right_arrow">right_arrow</string>
+    <string name="back_button">Back Button</string>
+    <string name="person">person</string>
+    <string name="copy">Copy</string>
+    <string name="read_more">Read More</string>
+    <string name="synonyms">- Synonyms : </string>
+    <string name="antonyms">- Antonyms : </string>
 </resources>

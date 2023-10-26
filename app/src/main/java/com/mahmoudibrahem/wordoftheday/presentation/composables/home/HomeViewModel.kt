@@ -1,8 +1,8 @@
 package com.mahmoudibrahem.wordoftheday.presentation.composables.home
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.mahmoudibrahem.wordoftheday.MyApplication
 import com.mahmoudibrahem.wordoftheday.core.util.Resource
 import com.mahmoudibrahem.wordoftheday.domain.model.Word
 import com.mahmoudibrahem.wordoftheday.domain.usecase.GetRandomWordUseCase
@@ -28,6 +28,8 @@ class HomeViewModel @Inject constructor(
     private val startWordAudioUseCase: StartWordAudioUseCase,
 ) : ViewModel() {
 
+    @Inject
+    lateinit var application: MyApplication
     private val _uiState = MutableStateFlow(HomeScreenUIState())
     val uiState = _uiState.asStateFlow()
     private var searchJob: Job? = null
@@ -52,18 +54,24 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    fun onchangeModeClicked() {
+        _uiState.update { it.copy(isDarkMode = application.isDarkMode.value) }
+        application.switchMode()
+    }
+
     fun onAudioButtonClicked(word: Word) {
         if (word.checkAudioAvailability()) {
             startWordAudioUseCase(word.phonetics.first().audio)
         }
     }
 
+
     private fun getRandomWordForToday() {
         viewModelScope.launch(Dispatchers.IO) {
             getRandomWordUseCase().collectLatest { state ->
                 when (state) {
                     is Resource.Loading -> {
-                        _uiState.update { it.copy(isPageLoading = true, screenMsg = "") }
+                        _uiState.update { it.copy(screenMsg = "") }
                     }
 
                     is Resource.Success -> {
@@ -73,7 +81,6 @@ class HomeViewModel @Inject constructor(
                     is Resource.Failure -> {
                         _uiState.update {
                             it.copy(
-                                isPageLoading = false,
                                 screenMsg = state.message.toString()
                             )
                         }
@@ -125,8 +132,7 @@ class HomeViewModel @Inject constructor(
                             _uiState.update {
                                 it.copy(
                                     todayWord = if (state.data!!.isNotEmpty()) state.data[0] else null,
-                                    screenMsg = "",
-                                    isPageLoading = false
+                                    screenMsg = ""
                                 )
                             }
                         }
@@ -135,7 +141,6 @@ class HomeViewModel @Inject constructor(
                     is Resource.Failure -> {
                         _uiState.update {
                             it.copy(
-                                isPageLoading = false,
                                 screenMsg = state.message.toString()
                             )
                         }

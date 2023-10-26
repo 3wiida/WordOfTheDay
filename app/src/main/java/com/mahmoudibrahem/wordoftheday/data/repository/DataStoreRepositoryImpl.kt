@@ -22,7 +22,7 @@ class DataStoreRepositoryImpl(
     override fun readOnboardingOpenedState(): Flow<Boolean?> {
         return dataStore.data
             .catch { cause: Throwable ->
-                Log.d("``TAG``", "readOnboardingOpenedState: ${cause.message}")
+                Log.d("``TAG``", "readOnboardingOpenedStateError: ${cause.message}")
             }
             .map { value: Preferences ->
                 value[ONBOARDING_STATE_KEY]

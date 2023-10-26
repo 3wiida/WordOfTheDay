@@ -6,6 +6,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.mahmoudibrahem.wordoftheday.presentation.composables.home.HomeScreen
 import com.mahmoudibrahem.wordoftheday.presentation.composables.onboarding.OnBoardingScreen
+import com.mahmoudibrahem.wordoftheday.presentation.composables.single_word.SingleWordScreen
 
 @Composable
 fun AppNavigation(
@@ -24,7 +25,22 @@ fun AppNavigation(
             )
         }
         composable(route = AppScreens.Home.route) {
-            HomeScreen()
+            HomeScreen(
+                onNavigateToSingleWord = {
+                    navController.navigate(
+                        AppScreens.SingleWord.route.replace("{word}", it)
+                    )
+                }
+            )
+        }
+        composable(route = AppScreens.SingleWord.route) {
+            val word = it.arguments?.getString("word")
+            word?.let {
+                SingleWordScreen(
+                    word = word,
+                    onNavigateUp = { navController.navigateUp() }
+                )
+            }
         }
     }
 }

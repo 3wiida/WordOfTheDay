@@ -12,14 +12,18 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.compose.rememberNavController
+import com.mahmoudibrahem.wordoftheday.MyApplication
 import com.mahmoudibrahem.wordoftheday.core.navigation.AppNavigation
 import com.mahmoudibrahem.wordoftheday.core.navigation.AppScreens
 import com.mahmoudibrahem.wordoftheday.presentation.ui.theme.WordOfTheDayTheme
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
+    @Inject
+    lateinit var application: MyApplication
     private val viewModel: MainViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -30,15 +34,17 @@ class MainActivity : ComponentActivity() {
                 Color.Transparent.toArgb(), Color.Transparent.toArgb()
             )
         )
+
         setContent {
-            WordOfTheDayTheme {
-                val startDestination = when (viewModel.startDestination.collectAsState().value) {
-                    AppScreens.Home -> AppScreens.Home.route
-                    AppScreens.Onboarding -> AppScreens.Onboarding.route
-                }
-                Log.d("````TAG````", "onCreate: $startDestination")
-                val navController = rememberNavController()
-                AppNavigation(navController = navController, startDestination = startDestination)
+            WordOfTheDayTheme(
+                darkTheme = application.isDarkMode.value
+            ) {
+                val isOnboardingOpened =
+                    viewModel.isOnboardingOpened.collectAsState(initial = false).value ?: false
+                AppNavigation(
+                    navController = rememberNavController(),
+                    startDestination = if (isOnboardingOpened) AppScreens.Home.route else AppScreens.Onboarding.route
+                )
             }
         }
     }

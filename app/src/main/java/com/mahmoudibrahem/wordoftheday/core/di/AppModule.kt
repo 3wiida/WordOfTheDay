@@ -3,6 +3,7 @@ package com.mahmoudibrahem.wordoftheday.core.di
 import android.media.MediaPlayer
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import com.mahmoudibrahem.wordoftheday.MyApplication
 import com.mahmoudibrahem.wordoftheday.data.remote.RandomWordAPI
 import com.mahmoudibrahem.wordoftheday.data.remote.WordAutocompleteAPI
 import com.mahmoudibrahem.wordoftheday.data.remote.WordsAPI
@@ -42,6 +43,12 @@ object AppModule {
     @Singleton
     fun provideMediaPlayer(): MediaPlayer {
         return MediaPlayer()
+    }
+
+    @Provides
+    @Singleton
+    fun provideApp():MyApplication{
+        return MyApplication()
     }
 
 }

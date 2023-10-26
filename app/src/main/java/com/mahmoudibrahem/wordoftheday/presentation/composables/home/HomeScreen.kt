@@ -3,8 +3,14 @@ package com.mahmoudibrahem.wordoftheday.presentation.composables.home
 import android.annotation.SuppressLint
 import android.content.Context
 import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -39,21 +45,21 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Color
@@ -81,22 +87,20 @@ import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.mahmoudibrahem.wordoftheday.R
 import com.mahmoudibrahem.wordoftheday.core.util.Formatter
+import com.mahmoudibrahem.wordoftheday.core.util.shadow
 import com.mahmoudibrahem.wordoftheday.domain.model.Meaning
 import com.mahmoudibrahem.wordoftheday.domain.model.Suggestion
 import com.mahmoudibrahem.wordoftheday.domain.model.Word
-import com.mahmoudibrahem.wordoftheday.presentation.ui.theme.AppGrayColor
-import com.mahmoudibrahem.wordoftheday.presentation.ui.theme.AppMainColor
-import com.mahmoudibrahem.wordoftheday.presentation.ui.theme.DisabledColor
-import com.mahmoudibrahem.wordoftheday.presentation.ui.theme.PlaceHolderColor
-import com.mahmoudibrahem.wordoftheday.presentation.ui.theme.SelectedSectionColor
 import com.mahmoudibrahem.wordoftheday.presentation.ui.theme.appFont
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
-    context: Context = LocalContext.current
+    context: Context = LocalContext.current,
+    onNavigateToSingleWord: (String) -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
     HomeScreenContent(
@@ -104,7 +108,10 @@ fun HomeScreen(
         onSearchQueryChanged = viewModel::onSearchQueryChanged,
         onSearchFocusChanged = viewModel::onSearchFocusChanged,
         onGetRandomWordBtnClicked = viewModel::getRandomWordForRandomSection,
-        onAudioBtnClicked = viewModel::onAudioButtonClicked
+        onChangeModeBtnClicked = viewModel::onchangeModeClicked,
+        onAudioBtnClicked = viewModel::onAudioButtonClicked,
+        onReadMoreClicked = { onNavigateToSingleWord(it) },
+        onSearchResultClicked = { onNavigateToSingleWord(it) }
     )
     LaunchedEffect(key1 = uiState.screenMsg) {
         if (uiState.screenMsg.isNotEmpty() && uiState.screenMsg.trim() != "null") {
@@ -120,16 +127,25 @@ private fun HomeScreenContent(
     onSearchQueryChanged: (String) -> Unit,
     onSearchFocusChanged: (Boolean) -> Unit,
     onGetRandomWordBtnClicked: () -> Unit,
-    onAudioBtnClicked: (Word) -> Unit
+    onAudioBtnClicked: (Word) -> Unit,
+    onReadMoreClicked: (String) -> Unit,
+    onSearchResultClicked: (String) -> Unit,
+    onChangeModeBtnClicked: () -> Unit
 ) {
     val pagerState = rememberPagerState { 2 }
+    val loadingComposition by
+    rememberLottieComposition(spec = LottieCompositionSpec.RawRes(R.raw.loader))
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(color = MaterialTheme.colorScheme.background)
             .padding(horizontal = 12.dp, vertical = 24.dp)
             .statusBarsPadding(),
     ) {
-        Header()
+        Header(
+            onChangeModeBtnClicked = onChangeModeBtnClicked,
+            isDarkMode = uiState.isDarkMode
+        )
         Spacer(modifier = Modifier.height(12.dp))
         SearchWidget(
             modifier = Modifier.padding(horizontal = 12.dp),
@@ -137,7 +153,8 @@ private fun HomeScreenContent(
             isLoading = uiState.isSearchLoading,
             results = uiState.searchResults,
             onSearchQueryChanged = onSearchQueryChanged,
-            onSearchFocusChanged = onSearchFocusChanged
+            onSearchFocusChanged = onSearchFocusChanged,
+            onResultClicked = onSearchResultClicked
         )
         Spacer(modifier = Modifier.height(12.dp))
         HomeTwoSections(
@@ -145,23 +162,62 @@ private fun HomeScreenContent(
             pagerState = pagerState
         )
         Spacer(modifier = Modifier.height(12.dp))
-        HomePager(
-            todayWord = uiState.todayWord,
-            yesterdayWord = uiState.yesterdayWord,
-            randomWord = uiState.randomWord,
-            pagerState = pagerState,
-            isPageLoading = uiState.isPageLoading,
-            isRandomBtnLoading = uiState.isGetRandomWordBtnLoading,
-            onGetRandomWordBtnClicked = onGetRandomWordBtnClicked,
-            onAudioBtnClicked = onAudioBtnClicked
-        )
+        AnimatedVisibility(
+            visible = uiState.todayWord == null || uiState.randomWord == null,
+            enter = scaleIn(animationSpec = tween(durationMillis = 500)) + fadeIn(
+                animationSpec = tween(
+                    durationMillis = 500
+                )
+            ),
+            exit = scaleOut(animationSpec = tween(durationMillis = 500)) + fadeOut(
+                animationSpec = tween(
+                    durationMillis = 500
+                )
+            )
+        ) {
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                LottieAnimation(
+                    modifier = Modifier.size(200.dp),
+                    composition = loadingComposition,
+                    iterations = LottieConstants.IterateForever
+                )
+            }
+        }
+        AnimatedVisibility(
+            visible = uiState.todayWord != null && uiState.randomWord != null,
+            enter = scaleIn(animationSpec = tween(delayMillis = 500)) + fadeIn(
+                animationSpec = tween(
+                    delayMillis = 500
+                )
+            ),
+            exit = scaleOut(animationSpec = tween(delayMillis = 500)) + fadeOut(
+                animationSpec = tween(
+                    delayMillis = 500
+                )
+            )
+        ) {
+            HomePager(
+                todayWord = uiState.todayWord,
+                yesterdayWord = uiState.yesterdayWord,
+                randomWord = uiState.randomWord,
+                pagerState = pagerState,
+                isRandomBtnLoading = uiState.isGetRandomWordBtnLoading,
+                onGetRandomWordBtnClicked = onGetRandomWordBtnClicked,
+                onAudioBtnClicked = onAudioBtnClicked,
+                onReadMoreClicked = onReadMoreClicked
+            )
+        }
     }
 }
 
-@Preview(showBackground = true)
+
 @Composable
 private fun Header(
-    onChangeModeBtnClicked: () -> Unit = {}
+    onChangeModeBtnClicked: () -> Unit = {},
+    isDarkMode: Boolean
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -173,7 +229,7 @@ private fun Header(
                 withStyle(
                     style = SpanStyle(
                         fontFamily = appFont,
-                        color = Color.Black,
+                        color = MaterialTheme.colorScheme.onBackground,
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Normal,
                         letterSpacing = 0.5.sp
@@ -184,7 +240,7 @@ private fun Header(
                 withStyle(
                     style = SpanStyle(
                         fontFamily = appFont,
-                        color = Color.Black,
+                        color = MaterialTheme.colorScheme.onBackground,
                         fontWeight = FontWeight.ExtraBold,
                         fontSize = 22.sp,
                         letterSpacing = 0.5.sp
@@ -200,14 +256,34 @@ private fun Header(
             modifier = Modifier
                 .size(42.dp)
                 .padding(8.dp)
-                .background(color = AppMainColor, shape = RoundedCornerShape(8.dp)),
+                .background(
+                    color = MaterialTheme.colorScheme.primary,
+                    shape = RoundedCornerShape(8.dp)
+                ),
             onClick = onChangeModeBtnClicked
         ) {
-            Icon(
-                painter = painterResource(id = R.drawable.moon_ic),
-                contentDescription = stringResource(R.string.change_mode),
-                tint = Color.Unspecified
-            )
+            AnimatedVisibility(
+                visible = isDarkMode,
+                enter = scaleIn(animationSpec = tween(durationMillis = 500, delayMillis = 500)),
+                exit = scaleOut(animationSpec = tween(durationMillis = 500, delayMillis = 500))
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.moon_ic),
+                    contentDescription = stringResource(R.string.change_mode),
+                    tint = MaterialTheme.colorScheme.onPrimary
+                )
+            }
+            AnimatedVisibility(
+                visible = !isDarkMode,
+                enter = scaleIn(animationSpec = tween(durationMillis = 500, delayMillis = 500)),
+                exit = scaleOut(animationSpec = tween(durationMillis = 500, delayMillis = 500))
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.sun_ic),
+                    contentDescription = stringResource(R.string.change_mode),
+                    tint = MaterialTheme.colorScheme.onPrimary
+                )
+            }
         }
     }
 }
@@ -220,18 +296,14 @@ private fun SearchWidget(
     isLoading: Boolean,
     results: List<Suggestion> = emptyList(),
     onSearchQueryChanged: (String) -> Unit = {},
-    onSearchFocusChanged: (Boolean) -> Unit
+    onSearchFocusChanged: (Boolean) -> Unit,
+    onResultClicked: (String) -> Unit
 ) {
     val context = LocalContext.current
     val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.laoding_anim))
-    Column(
+    Surface(
         modifier = modifier
-            .shadow(
-                elevation = 4.dp,
-                spotColor = PlaceHolderColor,
-                ambientColor = PlaceHolderColor
-            )
-            .background(color = Color.White, shape = RoundedCornerShape(8.dp))
+            .shadow(color = MaterialTheme.colorScheme.outlineVariant, blurRadius = 20.dp)
             .animateContentSize()
             .onFocusChanged {
                 Toast
@@ -239,71 +311,78 @@ private fun SearchWidget(
                     .show()
                 onSearchFocusChanged(it.isFocused)
             },
-
-        horizontalAlignment = Alignment.CenterHorizontally
+        shape = RoundedCornerShape(8.dp),
+        color = MaterialTheme.colorScheme.surface,
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(60.dp)
-                .background(
-                    color = Color.White,
-                    shape = if (results.isEmpty()) RoundedCornerShape(8.dp) else RoundedCornerShape(
-                        topEnd = 8.dp,
-                        topStart = 8.dp
-                    )
-                )
-                .padding(horizontal = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Icon(
-                painter = painterResource(id = R.drawable.search_ic),
-                contentDescription = stringResource(R.string.search),
-                tint = Color.Unspecified
-            )
-            OutlinedTextField(
+            Row(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(top = 4.dp),
-                value = searchQuery,
-                onValueChange = onSearchQueryChanged,
-                colors = TextFieldDefaults.outlinedTextFieldColors(
-                    unfocusedBorderColor = Color.Transparent,
-                    focusedBorderColor = Color.Transparent
-                ),
-                placeholder = {
-                    Text(
-                        text = stringResource(R.string.search_placeholder),
-                        color = PlaceHolderColor,
-                        fontSize = 16.sp
-                    )
-                },
-                textStyle = MaterialTheme.typography.labelMedium,
-
-                )
-        }
-
-        if (isLoading) {
-            LottieAnimation(
-                modifier = Modifier
-                    .size(56.dp)
                     .fillMaxWidth()
-                    .background(color = Color.White),
-                composition = composition,
-                iterations = LottieConstants.IterateForever,
-            )
-        }
-        if (!isLoading) {
-            LazyColumn(
-                modifier = Modifier
+                    .height(60.dp)
                     .background(
-                        color = Color.White,
-                        shape = RoundedCornerShape(bottomEnd = 8.dp, bottomStart = 8.dp)
+                        color = Color.Transparent,
+                        shape = if (results.isEmpty()) RoundedCornerShape(8.dp) else RoundedCornerShape(
+                            topEnd = 8.dp,
+                            topStart = 8.dp
+                        )
                     )
-                    .padding(horizontal = 12.dp)
+                    .padding(horizontal = 12.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                items(results) { result ->
-                    SearchResultItem(item = result)
+                Icon(
+                    painter = painterResource(id = R.drawable.search_ic),
+                    contentDescription = stringResource(R.string.search),
+                    tint = Color.Unspecified
+                )
+                OutlinedTextField(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(top = 4.dp),
+                    value = searchQuery,
+                    onValueChange = onSearchQueryChanged,
+                    colors = TextFieldDefaults.outlinedTextFieldColors(
+                        unfocusedBorderColor = Color.Transparent,
+                        focusedBorderColor = Color.Transparent
+                    ),
+                    placeholder = {
+                        Text(
+                            text = stringResource(R.string.search_placeholder),
+                            color = MaterialTheme.colorScheme.outline,
+                            fontSize = 16.sp
+                        )
+                    },
+                    textStyle = MaterialTheme.typography.labelMedium,
+
+                    )
+            }
+
+            if (isLoading) {
+                LottieAnimation(
+                    modifier = Modifier
+                        .size(56.dp)
+                        .fillMaxWidth()
+                        .background(color = Color.Transparent),
+                    composition = composition,
+                    iterations = LottieConstants.IterateForever,
+                )
+            }
+            if (!isLoading) {
+                LazyColumn(
+                    modifier = Modifier
+                        .background(
+                            color = Color.Transparent,
+                            shape = RoundedCornerShape(bottomEnd = 8.dp, bottomStart = 8.dp)
+                        )
+                        .padding(horizontal = 12.dp)
+                ) {
+                    items(results) { result ->
+                        SearchResultItem(
+                            item = result,
+                            onResultClicked = onResultClicked
+                        )
+                    }
                 }
             }
         }
@@ -311,11 +390,20 @@ private fun SearchWidget(
 }
 
 @Composable
-private fun SearchResultItem(item: Suggestion) {
+private fun SearchResultItem(
+    item: Suggestion,
+    onResultClicked: (String) -> Unit
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(32.dp),
+            .height(32.dp)
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null
+            ) {
+                onResultClicked(item.word)
+            },
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
@@ -329,7 +417,7 @@ private fun SearchResultItem(item: Suggestion) {
                 .fillMaxWidth()
                 .padding(start = 12.dp),
             text = item.word,
-            color = Color.Black,
+            color = MaterialTheme.colorScheme.onSurface,
             fontSize = 16.sp
         )
     }
@@ -340,76 +428,76 @@ private fun SearchResultItem(item: Suggestion) {
 @Composable
 private fun HomeTwoSections(
     modifier: Modifier = Modifier,
-    onSelectSection: (Int) -> Unit = {},
     pagerState: PagerState,
     scope: CoroutineScope = rememberCoroutineScope()
 ) {
-    Row(
+    var currentPage by remember { mutableIntStateOf(pagerState.currentPage) }
+    Surface(
         modifier = modifier
             .fillMaxWidth()
             .height(40.dp)
-            .shadow(
-                elevation = 4.dp,
-                spotColor = PlaceHolderColor,
-                ambientColor = PlaceHolderColor
-            )
-            .background(color = Color.White, shape = RoundedCornerShape(8.dp)),
-        verticalAlignment = Alignment.CenterVertically
+            .shadow(color = MaterialTheme.colorScheme.outlineVariant, blurRadius = 20.dp),
+        color = MaterialTheme.colorScheme.surface,
+        shape = RoundedCornerShape(8.dp)
     ) {
-        ClickableText(
-            modifier = Modifier
-                .fillMaxHeight()
-                .drawBehind {
-                    if (pagerState.currentPage == 0) {
-                        drawRoundRect(
-                            color = SelectedSectionColor,
-                            cornerRadius = CornerRadius(x = 8.dp.toPx(), y = 8.dp.toPx())
-                        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            ClickableText(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .drawBehind {
+                        if (currentPage == 0) {
+                            drawRoundRect(
+                                color = Color(0xFFf64538),
+                                cornerRadius = CornerRadius(x = 8.dp.toPx(), y = 8.dp.toPx())
+                            )
+                        }
+                    }
+                    .wrapContentHeight(align = Alignment.CenterVertically)
+                    .weight(1f),
+                text = AnnotatedString(text = stringResource(R.string.today_s_word)),
+                style = TextStyle(
+                    textAlign = TextAlign.Center,
+                    fontSize = 16.sp,
+                    fontFamily = appFont,
+                    color = if (currentPage == 0) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
+                ),
+                onClick = {
+                    currentPage = 0
+                    scope.launch(Dispatchers.Main) {
+                        pagerState.animateScrollToPage(0)
                     }
                 }
-                .wrapContentHeight(align = Alignment.CenterVertically)
-                .weight(1f),
-            text = AnnotatedString(text = stringResource(R.string.today_s_word)),
-            style = TextStyle(
-                textAlign = TextAlign.Center,
-                fontSize = 16.sp,
-                fontFamily = appFont,
-                color = if (pagerState.currentPage == 0) Color.White else Color.Black
-            ),
-            onClick = {
-                onSelectSection(0)
-                scope.launch {
-                    pagerState.animateScrollToPage(0)
-                }
-            }
-        )
-        ClickableText(
-            modifier = Modifier
-                .fillMaxHeight()
-                .drawBehind {
-                    if (pagerState.currentPage == 1) {
-                        drawRoundRect(
-                            color = SelectedSectionColor,
-                            cornerRadius = CornerRadius(x = 8.dp.toPx(), y = 8.dp.toPx())
-                        )
+            )
+            ClickableText(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .drawBehind {
+                        if (currentPage == 1) {
+                            drawRoundRect(
+                                color = Color(0xFFf64538),
+                                cornerRadius = CornerRadius(x = 8.dp.toPx(), y = 8.dp.toPx())
+                            )
+                        }
+                    }
+                    .wrapContentHeight(align = Alignment.CenterVertically)
+                    .weight(1f),
+                text = AnnotatedString(text = stringResource(R.string.random)),
+                style = TextStyle(
+                    textAlign = TextAlign.Center,
+                    fontSize = 16.sp,
+                    fontFamily = appFont,
+                    color = if (currentPage == 1) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
+                ),
+                onClick = {
+                    currentPage = 1
+                    scope.launch(Dispatchers.Main) {
+                        pagerState.animateScrollToPage(1)
                     }
                 }
-                .wrapContentHeight(align = Alignment.CenterVertically)
-                .weight(1f),
-            text = AnnotatedString(text = stringResource(R.string.random)),
-            style = TextStyle(
-                textAlign = TextAlign.Center,
-                fontSize = 16.sp,
-                fontFamily = appFont,
-                color = if (pagerState.currentPage == 1) Color.White else Color.Black
-            ),
-            onClick = {
-                onSelectSection(1)
-                scope.launch {
-                    pagerState.animateScrollToPage(1)
-                }
-            }
-        )
+            )
+        }
     }
 }
 
@@ -420,25 +508,27 @@ private fun HomePager(
     yesterdayWord: Word?,
     pagerState: PagerState,
     randomWord: Word?,
-    isPageLoading: Boolean,
     isRandomBtnLoading: Boolean,
     onGetRandomWordBtnClicked: () -> Unit,
-    onAudioBtnClicked: (Word) -> Unit
+    onAudioBtnClicked: (Word) -> Unit,
+    onReadMoreClicked: (String) -> Unit
 ) {
     HorizontalPager(state = pagerState) { position ->
         if (position == 0) {
             TodayWord(
                 todayWord = todayWord,
                 yesterdayWord = yesterdayWord,
-                isPageLoading = isPageLoading,
-                onAudioBtnClicked = onAudioBtnClicked
+                onAudioBtnClicked = onAudioBtnClicked,
+                onReadMoreClicked = onReadMoreClicked
+
             )
         } else {
             RandomWord(
                 word = randomWord,
                 isRandomBtnLoading = isRandomBtnLoading,
                 onGetRandomWordBtnClicked = onGetRandomWordBtnClicked,
-                onAudioBtnClicked = onAudioBtnClicked
+                onAudioBtnClicked = onAudioBtnClicked,
+                onReadMoreClicked = onReadMoreClicked
             )
         }
     }
@@ -448,29 +538,20 @@ private fun HomePager(
 private fun TodayWord(
     todayWord: Word?,
     yesterdayWord: Word?,
-    isPageLoading: Boolean,
-    onAudioBtnClicked: (Word) -> Unit
+    onAudioBtnClicked: (Word) -> Unit,
+    onReadMoreClicked: (String) -> Unit
 ) {
-    val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.laoding_anim))
     LazyColumn(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        if (isPageLoading) {
-            item {
-                LottieAnimation(
-                    modifier = Modifier.size(100.dp),
-                    composition = composition,
-                    iterations = LottieConstants.IterateForever,
-                )
-            }
-        }
         todayWord?.let {
             item {
                 WordItem(
                     word = it,
                     timeId = 0,
-                    onAudioBtnClicked = onAudioBtnClicked
+                    onAudioBtnClicked = onAudioBtnClicked,
+                    onReadMoreClicked = onReadMoreClicked
                 )
             }
         }
@@ -482,7 +563,8 @@ private fun TodayWord(
                 WordItem(
                     word = it,
                     timeId = 1,
-                    onAudioBtnClicked = onAudioBtnClicked
+                    onAudioBtnClicked = onAudioBtnClicked,
+                    onReadMoreClicked = onReadMoreClicked
                 )
             }
         }
@@ -494,7 +576,8 @@ private fun RandomWord(
     word: Word?,
     isRandomBtnLoading: Boolean,
     onGetRandomWordBtnClicked: () -> Unit,
-    onAudioBtnClicked: (Word) -> Unit
+    onAudioBtnClicked: (Word) -> Unit,
+    onReadMoreClicked: (String) -> Unit
 ) {
     val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.laoding_anim))
     LazyColumn {
@@ -504,7 +587,8 @@ private fun RandomWord(
                     word = it,
                     isRandomWord = true,
                     isExpandableItem = false,
-                    onAudioBtnClicked = onAudioBtnClicked
+                    onAudioBtnClicked = onAudioBtnClicked,
+                    onReadMoreClicked = onReadMoreClicked
                 )
             }
         }
@@ -519,8 +603,8 @@ private fun RandomWord(
                     .padding(8.dp),
                 onClick = onGetRandomWordBtnClicked,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = AppMainColor,
-                    disabledContainerColor = DisabledColor
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    disabledContainerColor = MaterialTheme.colorScheme.onSurfaceVariant
                 ),
                 shape = RoundedCornerShape(8.dp),
                 enabled = !isRandomBtnLoading
@@ -552,117 +636,124 @@ private fun WordItem(
     timeId: Int = 0,
     isExpandableItem: Boolean = true,
     isRandomWord: Boolean = false,
-    onAudioBtnClicked: (Word) -> Unit
+    onAudioBtnClicked: (Word) -> Unit,
+    onReadMoreClicked: (String) -> Unit
 ) {
     var isExpanded by remember { mutableStateOf(timeId == 0) }
     val arrowDirection = animateFloatAsState(
         targetValue = if (isExpanded) -1f else 1f,
         label = stringResource(R.string.arrow_animation)
     )
-    Column(
+    Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .shadow(
-                elevation = 4.dp,
-                spotColor = PlaceHolderColor,
-                ambientColor = PlaceHolderColor
-            )
-            .background(color = Color.White, shape = RoundedCornerShape(8.dp))
-            .padding(12.dp)
-            .animateContentSize()
+            .shadow(color = MaterialTheme.colorScheme.outlineVariant, blurRadius = 20.dp)
+            .animateContentSize(),
+        color = MaterialTheme.colorScheme.surface,
+        shape = RoundedCornerShape(8.dp)
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
+        Column(
+            modifier = Modifier.padding(12.dp)
         ) {
-            Column {
-                Text(
-                    text = word.word,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Medium,
-                    fontFamily = appFont
-                )
-                Text(
-                    text = Formatter.formatWordPartOfSpeech(word),
-                    fontSize = 12.sp,
-                    color = AppGrayColor,
-                    fontFamily = appFont
-                )
-            }
-
-            Icon(
-                modifier = Modifier
-                    .size(width = 32.dp, height = 32.dp)
-                    .background(
-                        color = if (word.checkAudioAvailability()) AppMainColor else AppGrayColor,
-                        shape = RoundedCornerShape(8.dp)
-                    )
-                    .padding(4.dp)
-                    .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null
-                    ) {
-                        onAudioBtnClicked(word)
-                    },
-                painter = painterResource(id = R.drawable.sound_ic),
-                contentDescription = stringResource(R.string.listen),
-                tint = if (word.checkAudioAvailability()) Color.Unspecified else Color.LightGray
-            )
-
-        }
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        if (!isRandomWord) {
             Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.star_ic),
-                    contentDescription = stringResource(R.string.star),
-                    tint = Color.Unspecified
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = if (timeId == 0) stringResource(R.string.today) else stringResource(R.string.yesterday),
-                    color = if (timeId == 0) Color.Green else Color.Red,
-                    fontFamily = appFont,
-                    fontSize = 16.sp
-                )
-            }
-        }
-
-        if (isExpandableItem) {
-            if (isExpanded) {
-                Spacer(modifier = Modifier.height(8.dp))
-                WordExpandedSection(meaning = word.meanings[0])
-            }
-        } else {
-            Spacer(modifier = Modifier.height(8.dp))
-            WordExpandedSection(meaning = word.meanings[0])
-        }
-
-        if (isExpandableItem) {
-            Box(
                 modifier = Modifier.fillMaxWidth(),
-                contentAlignment = Alignment.Center
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
+                Column {
+                    Text(
+                        text = word.word,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Medium,
+                        fontFamily = appFont
+                    )
+                    Text(
+                        text = Formatter.formatWordPartOfSpeech(word),
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontFamily = appFont
+                    )
+                }
+
                 Icon(
                     modifier = Modifier
+                        .size(width = 32.dp, height = 32.dp)
+                        .background(
+                            color = if (word.checkAudioAvailability()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                        .padding(4.dp)
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null
                         ) {
-                            isExpanded = !isExpanded
-                        }
-                        .graphicsLayer {
-                            scaleY = arrowDirection.value
-                            scaleX = arrowDirection.value
+                            onAudioBtnClicked(word)
                         },
-                    painter = painterResource(id = R.drawable.down_arrow_ic),
-                    contentDescription = stringResource(R.string.down_arrow),
-                    tint = Color.Unspecified
+                    painter = painterResource(id = R.drawable.sound_ic),
+                    contentDescription = stringResource(R.string.listen),
+                    tint = if (word.checkAudioAvailability()) MaterialTheme.colorScheme.onPrimary else Color.LightGray
                 )
+
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            if (!isRandomWord) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.star_ic),
+                        contentDescription = stringResource(R.string.star),
+                        tint = Color.Unspecified
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = if (timeId == 0) stringResource(R.string.today) else stringResource(R.string.yesterday),
+                        color = if (timeId == 0) Color.Green else Color.Red,
+                        fontFamily = appFont,
+                        fontSize = 16.sp
+                    )
+                }
+            }
+
+            if (isExpandableItem) {
+                if (isExpanded) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    WordExpandedSection(
+                        meaning = word.meanings[0],
+                        onReadMoreClicked = { onReadMoreClicked(word.word) }
+                    )
+                }
+            } else {
+                Spacer(modifier = Modifier.height(8.dp))
+                WordExpandedSection(
+                    meaning = word.meanings[0],
+                    onReadMoreClicked = { onReadMoreClicked(word.word) }
+                )
+            }
+
+            if (isExpandableItem) {
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        modifier = Modifier
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null
+                            ) {
+                                isExpanded = !isExpanded
+                            }
+                            .graphicsLayer {
+                                scaleY = arrowDirection.value
+                                scaleX = arrowDirection.value
+                            },
+                        painter = painterResource(id = R.drawable.down_arrow_ic),
+                        contentDescription = stringResource(R.string.down_arrow),
+                        tint = Color.Unspecified
+                    )
+                }
             }
         }
     }
@@ -670,7 +761,10 @@ private fun WordItem(
 
 
 @Composable
-private fun WordExpandedSection(meaning: Meaning) {
+private fun WordExpandedSection(
+    meaning: Meaning,
+    onReadMoreClicked: () -> Unit
+) {
     Column {
         Text(
             modifier = Modifier.padding(bottom = 8.dp),
@@ -682,7 +776,7 @@ private fun WordExpandedSection(meaning: Meaning) {
         Divider(
             modifier = Modifier
                 .size(width = 50.dp, height = 1.dp)
-                .background(color = AppGrayColor)
+                .background(color = MaterialTheme.colorScheme.onSurfaceVariant)
         )
         Text(
             modifier = Modifier.padding(top = 12.dp),
@@ -690,7 +784,7 @@ private fun WordExpandedSection(meaning: Meaning) {
             fontSize = 14.sp,
             fontFamily = appFont,
             fontStyle = FontStyle.Italic,
-            color = PlaceHolderColor
+            color = MaterialTheme.colorScheme.outline
         )
         Text(
             modifier = Modifier.padding(top = 8.dp),
@@ -705,7 +799,7 @@ private fun WordExpandedSection(meaning: Meaning) {
                 fontSize = 14.sp,
                 fontFamily = appFont,
                 fontStyle = FontStyle.Italic,
-                color = PlaceHolderColor
+                color = MaterialTheme.colorScheme.outline
             )
             Text(
                 modifier = Modifier.padding(top = 8.dp),
@@ -718,15 +812,24 @@ private fun WordExpandedSection(meaning: Meaning) {
         Box(
             contentAlignment = Alignment.Center,
             modifier = Modifier
-                .background(color = AppMainColor, shape = RoundedCornerShape(4.dp))
+                .background(
+                    color = MaterialTheme.colorScheme.primary,
+                    shape = RoundedCornerShape(4.dp)
+                )
                 .padding(8.dp)
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null
+                ) {
+                    onReadMoreClicked()
+                }
         ) {
             Text(
-                text = "Read More",
+                text = stringResource(R.string.read_more),
                 fontFamily = appFont,
                 fontWeight = FontWeight.Medium,
                 fontSize = 14.sp,
-                color = Color.White
+                color = MaterialTheme.colorScheme.onPrimary
             )
         }
     }

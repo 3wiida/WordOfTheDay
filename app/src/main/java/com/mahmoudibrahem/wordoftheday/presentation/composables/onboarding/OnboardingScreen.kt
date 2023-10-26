@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -30,8 +31,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.mahmoudibrahem.wordoftheday.R
-import com.mahmoudibrahem.wordoftheday.presentation.ui.theme.AppGrayColor
-import com.mahmoudibrahem.wordoftheday.presentation.ui.theme.AppMainColor
 import com.mahmoudibrahem.wordoftheday.presentation.ui.theme.appFont
 
 @Composable
@@ -54,6 +53,7 @@ private fun OnboardingScreenContent(
     Column(
         Modifier
             .fillMaxSize()
+            .background(color = MaterialTheme.colorScheme.background)
             .padding(horizontal = 32.dp, vertical = 32.dp)
     ) {
         Image(
@@ -64,14 +64,14 @@ private fun OnboardingScreenContent(
         Text(
             modifier = Modifier,
             text = stringResource(R.string.vocabulary_builder),
-            color = AppMainColor,
+            color = MaterialTheme.colorScheme.primary,
             fontFamily = appFont,
             fontSize = 16.sp
         )
         Text(
             modifier = Modifier,
             text = stringResource(R.string.onboarding_des),
-            color = AppGrayColor,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontFamily = appFont,
             fontSize = 14.sp
         )
@@ -98,7 +98,10 @@ private fun OnboardingScreenContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(60.dp)
-                    .background(color = AppMainColor, shape = RoundedCornerShape(8.dp))
+                    .background(
+                        color = MaterialTheme.colorScheme.primary,
+                        shape = RoundedCornerShape(8.dp)
+                    )
                     .padding(horizontal = 12.dp)
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
@@ -110,7 +113,7 @@ private fun OnboardingScreenContent(
                 Text(
                     modifier = Modifier.align(Alignment.CenterStart),
                     text = stringResource(R.string.get_started),
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onBackground,
                     fontFamily = appFont,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium
@@ -123,9 +126,9 @@ private fun OnboardingScreenContent(
                 )
             }
         }
-
     }
 }
+
 
 @Preview(showSystemUi = true)
 @Composable

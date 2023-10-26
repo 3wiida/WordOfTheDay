@@ -1,17 +1,31 @@
 package com.mahmoudibrahem.wordoftheday.presentation.ui.theme
 
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.ui.graphics.Color
 
-val Purple80 = Color(0xFFD0BCFF)
-val PurpleGrey80 = Color(0xFFCCC2DC)
-val Pink80 = Color(0xFFEFB8C8)
 
-val Purple40 = Color(0xFF6650a4)
-val PurpleGrey40 = Color(0xFF625b71)
-val Pink40 = Color(0xFF7D5260)
+val lightColorPalette = lightColorScheme(
+    primary = Color(0xFF1f6bff),
+    secondary = Color(0xFFf64538),
+    tertiary = Color(0xFF40a965),
+    background = Color(0xFFf9fafb),
+    surface = Color(0xFFffffff),
+    onSurface = Color(0xFF000000),
+    onSurfaceVariant = Color(0xFFd8d9da),
+    outline = Color(0xFFa2bef2),
+    onBackground = Color(0xFF000000),
 
-val AppMainColor = Color(0xFF1f6bff)
-val PlaceHolderColor = Color(0xFFb1c8ec)
-val SelectedSectionColor = Color(0xFFf64538)
-val AppGrayColor = Color(0xFFb5b8ba)
-val DisabledColor = Color(0xB3D1D2D3)
+)
+
+val darkColorPalette = darkColorScheme(
+    primary = Color(0xFFdedede),
+    secondary = Color(0xFFf64538),
+    tertiary = Color(0xFF40a965),
+    background = Color(0xFF202022),
+    surface = Color(0xFF151517),
+    onSurface = Color(0xFFe3e3e3),
+    onSurfaceVariant = Color(0xFF545557),
+    outline = Color(0xFF474748),
+    onBackground = Color(0xFFffffff)
+)

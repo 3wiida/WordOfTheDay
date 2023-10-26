@@ -2,7 +2,10 @@ package com.mahmoudibrahem.wordoftheday.presentation.ui.theme
 
 import android.app.Activity
 import android.os.Build
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
@@ -16,33 +19,38 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
-private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
+val LightColorPalette = lightColorScheme(
+    primary = Color(0xFF1f6bff),
+    secondary = Color(0xFFf64538),
+    tertiary = Color(0xFF40a965),
+    background = Color(0xFFf9fafb),
+    surface = Color(0xFFffffff),
+    onSurface = Color(0xFF000000),
+    onSurfaceVariant = Color(0xFFd8d9da),
+    outline = Color(0xFFa2bef2),
+    onBackground = Color(0xFF000000),
+    outlineVariant = Color(0x14A2BEF2),
+    onPrimary = Color(0xFFf8f9f9)
 )
 
-private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
-
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
+val DarkColorPalette = darkColorScheme(
+    primary = Color(0xFFffffff),
+    secondary = Color(0xFFf64538),
+    tertiary = Color(0xFF40a965),
+    background = Color(0xFF202022),
+    surface = Color(0xFF151517),
+    onSurface = Color(0xFFe3e3e3),
+    onSurfaceVariant = Color(0xFF545557),
+    outline = Color(0xFF474748),
+    onBackground = Color(0xFFffffff),
+    outlineVariant = Color(0x14A2BEF2),
+    onPrimary = Color(0xFF151517)
 )
 
 @Composable
 fun WordOfTheDayTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
@@ -51,8 +59,8 @@ fun WordOfTheDayTheme(
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
 
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
+        darkTheme -> DarkColorPalette
+        else -> LightColorPalette
     }
     val view = LocalView.current
     if (!view.isInEditMode) {
@@ -64,8 +72,33 @@ fun WordOfTheDayTheme(
     }
 
     MaterialTheme(
-        colorScheme = colorScheme,
+        colorScheme = colorScheme.switch(),
         typography = Typography,
         content = content
     )
 }
+
+@Composable
+private fun animateColor(targetValue: Color) =
+    animateColorAsState(
+        targetValue = targetValue,
+        animationSpec = tween(durationMillis = 1000),
+        label = ""
+    ).value
+
+@Composable
+fun ColorScheme.switch() = copy(
+    primary = animateColor(primary),
+    onPrimary = animateColor(onPrimary),
+    secondary = animateColor(secondary),
+    tertiary = animateColor(tertiary),
+    background = animateColor(background),
+    surface = animateColor(surface),
+    onSurfaceVariant = animateColor(onSurfaceVariant),
+    onSecondary = animateColor(onSecondary),
+    onBackground = animateColor(onBackground),
+    onSurface = animateColor(onSurface),
+    onError = animateColor(onError),
+    outline = animateColor(outline),
+    outlineVariant = animateColor(outlineVariant)
+)
