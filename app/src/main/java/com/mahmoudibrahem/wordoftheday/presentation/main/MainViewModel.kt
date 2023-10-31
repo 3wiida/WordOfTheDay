@@ -2,6 +2,8 @@ package com.mahmoudibrahem.wordoftheday.presentation.main
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.mahmoudibrahem.wordoftheday.domain.usecase.ReadDarkModeStateUseCase
+import com.mahmoudibrahem.wordoftheday.domain.usecase.ReadLatestDayUseCase
 import com.mahmoudibrahem.wordoftheday.domain.usecase.ReadOnboardingStateUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
@@ -14,6 +16,8 @@ import javax.inject.Inject
 @HiltViewModel
 class MainViewModel @Inject constructor(
     readOnboardingStateUseCase: ReadOnboardingStateUseCase,
+    readDarkModeStateUseCase: ReadDarkModeStateUseCase,
+    readLatestDayUseCase: ReadLatestDayUseCase
 ) : ViewModel() {
 
     private val _isKeepSplash = MutableStateFlow(true)
@@ -26,6 +30,8 @@ class MainViewModel @Inject constructor(
         }
     }
 
+    val isInDarkMode = readDarkModeStateUseCase()
     val isOnboardingOpened = readOnboardingStateUseCase()
+    val latestDay = readLatestDayUseCase()
 
 }

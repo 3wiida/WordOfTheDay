@@ -49,6 +49,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -60,11 +61,16 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.focus.FocusManager
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
@@ -81,12 +87,14 @@ import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.LifecycleOwner
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.mahmoudibrahem.wordoftheday.R
-import com.mahmoudibrahem.wordoftheday.core.util.Formatter
 import com.mahmoudibrahem.wordoftheday.core.util.shadow
 import com.mahmoudibrahem.wordoftheday.domain.model.Meaning
 import com.mahmoudibrahem.wordoftheday.domain.model.Suggestion
@@ -100,6 +108,7 @@ import kotlinx.coroutines.launch
 fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
     context: Context = LocalContext.current,
+    lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current,
     onNavigateToSingleWord: (String) -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -118,6 +127,17 @@ fun HomeScreen(
             Toast.makeText(context, uiState.screenMsg, Toast.LENGTH_SHORT).show()
         }
     }
+    DisposableEffect(key1 = lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                viewModel.onScreenResumed()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
 }
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -130,21 +150,28 @@ private fun HomeScreenContent(
     onAudioBtnClicked: (Word) -> Unit,
     onReadMoreClicked: (String) -> Unit,
     onSearchResultClicked: (String) -> Unit,
-    onChangeModeBtnClicked: () -> Unit
+    onChangeModeBtnClicked: () -> Unit,
 ) {
     val pagerState = rememberPagerState { 2 }
-    val loadingComposition by
-    rememberLottieComposition(spec = LottieCompositionSpec.RawRes(R.raw.loader))
+    val focusRequester = remember { FocusRequester() }
+    val focusManager = LocalFocusManager.current
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(color = MaterialTheme.colorScheme.background)
             .padding(horizontal = 12.dp, vertical = 24.dp)
-            .statusBarsPadding(),
+            .statusBarsPadding()
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null
+            ) {
+                focusManager.clearFocus()
+            },
     ) {
         Header(
             onChangeModeBtnClicked = onChangeModeBtnClicked,
-            isDarkMode = uiState.isDarkMode
+            isDarkMode = uiState.isDarkMode,
+            focusManager = focusManager
         )
         Spacer(modifier = Modifier.height(12.dp))
         SearchWidget(
@@ -154,62 +181,28 @@ private fun HomeScreenContent(
             results = uiState.searchResults,
             onSearchQueryChanged = onSearchQueryChanged,
             onSearchFocusChanged = onSearchFocusChanged,
-            onResultClicked = onSearchResultClicked
+            onResultClicked = onSearchResultClicked,
+            focusRequester = focusRequester
         )
         Spacer(modifier = Modifier.height(12.dp))
         HomeTwoSections(
             modifier = Modifier.padding(24.dp),
-            pagerState = pagerState
+            pagerState = pagerState,
+            focusManager = focusManager
         )
         Spacer(modifier = Modifier.height(12.dp))
-        AnimatedVisibility(
-            visible = uiState.todayWord == null || uiState.randomWord == null,
-            enter = scaleIn(animationSpec = tween(durationMillis = 500)) + fadeIn(
-                animationSpec = tween(
-                    durationMillis = 500
-                )
-            ),
-            exit = scaleOut(animationSpec = tween(durationMillis = 500)) + fadeOut(
-                animationSpec = tween(
-                    durationMillis = 500
-                )
-            )
-        ) {
-            Box(
-                modifier = Modifier.fillMaxWidth(),
-                contentAlignment = Alignment.Center
-            ) {
-                LottieAnimation(
-                    modifier = Modifier.size(200.dp),
-                    composition = loadingComposition,
-                    iterations = LottieConstants.IterateForever
-                )
-            }
-        }
-        AnimatedVisibility(
-            visible = uiState.todayWord != null && uiState.randomWord != null,
-            enter = scaleIn(animationSpec = tween(delayMillis = 500)) + fadeIn(
-                animationSpec = tween(
-                    delayMillis = 500
-                )
-            ),
-            exit = scaleOut(animationSpec = tween(delayMillis = 500)) + fadeOut(
-                animationSpec = tween(
-                    delayMillis = 500
-                )
-            )
-        ) {
-            HomePager(
-                todayWord = uiState.todayWord,
-                yesterdayWord = uiState.yesterdayWord,
-                randomWord = uiState.randomWord,
-                pagerState = pagerState,
-                isRandomBtnLoading = uiState.isGetRandomWordBtnLoading,
-                onGetRandomWordBtnClicked = onGetRandomWordBtnClicked,
-                onAudioBtnClicked = onAudioBtnClicked,
-                onReadMoreClicked = onReadMoreClicked
-            )
-        }
+        HomePager(
+            todayWord = uiState.todayWord,
+            yesterdayWord = uiState.yesterdayWord,
+            randomWord = uiState.randomWord,
+            pagerState = pagerState,
+            focusManager = focusManager,
+            isRandomBtnLoading = uiState.isGetRandomWordBtnLoading,
+            onGetRandomWordBtnClicked = onGetRandomWordBtnClicked,
+            onAudioBtnClicked = onAudioBtnClicked,
+            onReadMoreClicked = onReadMoreClicked
+        )
+
     }
 }
 
@@ -217,10 +210,18 @@ private fun HomeScreenContent(
 @Composable
 private fun Header(
     onChangeModeBtnClicked: () -> Unit = {},
-    isDarkMode: Boolean
+    isDarkMode: Boolean,
+    focusManager: FocusManager
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null
+            ) {
+                focusManager.clearFocus()
+            },
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -254,12 +255,12 @@ private fun Header(
 
         IconButton(
             modifier = Modifier
-                .size(42.dp)
-                .padding(8.dp)
+                .size(36.dp)
                 .background(
                     color = MaterialTheme.colorScheme.primary,
                     shape = RoundedCornerShape(8.dp)
-                ),
+                )
+                .padding(8.dp),
             onClick = onChangeModeBtnClicked
         ) {
             AnimatedVisibility(
@@ -297,18 +298,15 @@ private fun SearchWidget(
     results: List<Suggestion> = emptyList(),
     onSearchQueryChanged: (String) -> Unit = {},
     onSearchFocusChanged: (Boolean) -> Unit,
-    onResultClicked: (String) -> Unit
+    onResultClicked: (String) -> Unit,
+    focusRequester: FocusRequester
 ) {
-    val context = LocalContext.current
     val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.laoding_anim))
     Surface(
         modifier = modifier
             .shadow(color = MaterialTheme.colorScheme.outlineVariant, blurRadius = 20.dp)
             .animateContentSize()
             .onFocusChanged {
-                Toast
-                    .makeText(context, "${it.isFocused}", Toast.LENGTH_SHORT)
-                    .show()
                 onSearchFocusChanged(it.isFocused)
             },
         shape = RoundedCornerShape(8.dp),
@@ -339,7 +337,8 @@ private fun SearchWidget(
                 OutlinedTextField(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(top = 4.dp),
+                        .padding(top = 4.dp)
+                        .focusRequester(focusRequester),
                     value = searchQuery,
                     onValueChange = onSearchQueryChanged,
                     colors = TextFieldDefaults.outlinedTextFieldColors(
@@ -429,16 +428,20 @@ private fun SearchResultItem(
 private fun HomeTwoSections(
     modifier: Modifier = Modifier,
     pagerState: PagerState,
+    focusManager: FocusManager,
     scope: CoroutineScope = rememberCoroutineScope()
 ) {
     var currentPage by remember { mutableIntStateOf(pagerState.currentPage) }
+    LaunchedEffect(key1 = pagerState.currentPage) {
+        currentPage = pagerState.currentPage
+    }
     Surface(
         modifier = modifier
             .fillMaxWidth()
             .height(40.dp)
             .shadow(color = MaterialTheme.colorScheme.outlineVariant, blurRadius = 20.dp),
         color = MaterialTheme.colorScheme.surface,
-        shape = RoundedCornerShape(8.dp)
+        shape = RoundedCornerShape(8.dp),
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically
@@ -468,6 +471,7 @@ private fun HomeTwoSections(
                     scope.launch(Dispatchers.Main) {
                         pagerState.animateScrollToPage(0)
                     }
+                    focusManager.clearFocus()
                 }
             )
             ClickableText(
@@ -492,6 +496,7 @@ private fun HomeTwoSections(
                 ),
                 onClick = {
                     currentPage = 1
+                    focusManager.clearFocus()
                     scope.launch(Dispatchers.Main) {
                         pagerState.animateScrollToPage(1)
                     }
@@ -508,28 +513,109 @@ private fun HomePager(
     yesterdayWord: Word?,
     pagerState: PagerState,
     randomWord: Word?,
+    focusManager: FocusManager,
     isRandomBtnLoading: Boolean,
     onGetRandomWordBtnClicked: () -> Unit,
     onAudioBtnClicked: (Word) -> Unit,
     onReadMoreClicked: (String) -> Unit
 ) {
+    val todaySectionLoader by rememberLottieComposition(spec = LottieCompositionSpec.RawRes(R.raw.loader))
+    val randomWordSectionLoader by rememberLottieComposition(spec = LottieCompositionSpec.RawRes(R.raw.loader))
     HorizontalPager(state = pagerState) { position ->
         if (position == 0) {
-            TodayWord(
-                todayWord = todayWord,
-                yesterdayWord = yesterdayWord,
-                onAudioBtnClicked = onAudioBtnClicked,
-                onReadMoreClicked = onReadMoreClicked
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.TopCenter
+            ) {
+                AnimatedVisibility(
+                    visible = todayWord != null,
+                    enter = scaleIn(animationSpec = tween(delayMillis = 500)) + fadeIn(
+                        animationSpec = tween(
+                            delayMillis = 500
+                        )
+                    ),
+                    exit = scaleOut(animationSpec = tween(delayMillis = 500)) + fadeOut(
+                        animationSpec = tween(
+                            delayMillis = 500
+                        )
+                    )
+                ) {
+                    TodayWord(
+                        todayWord = todayWord,
+                        yesterdayWord = yesterdayWord,
+                        focusManager = focusManager,
+                        onAudioBtnClicked = onAudioBtnClicked,
+                        onReadMoreClicked = onReadMoreClicked
 
-            )
+                    )
+                }
+                AnimatedVisibility(
+                    visible = todayWord == null,
+                    enter = scaleIn(animationSpec = tween(durationMillis = 500)) + fadeIn(
+                        animationSpec = tween(
+                            durationMillis = 500
+                        )
+                    ),
+                    exit = scaleOut(animationSpec = tween(durationMillis = 500)) + fadeOut(
+                        animationSpec = tween(
+                            durationMillis = 500
+                        )
+                    )
+                ) {
+                    LottieAnimation(
+                        modifier = Modifier.size(200.dp),
+                        composition = todaySectionLoader,
+                        iterations = LottieConstants.IterateForever
+                    )
+                }
+            }
         } else {
-            RandomWord(
-                word = randomWord,
-                isRandomBtnLoading = isRandomBtnLoading,
-                onGetRandomWordBtnClicked = onGetRandomWordBtnClicked,
-                onAudioBtnClicked = onAudioBtnClicked,
-                onReadMoreClicked = onReadMoreClicked
-            )
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.TopCenter
+            ) {
+                AnimatedVisibility(
+                    visible = randomWord != null,
+                    enter = scaleIn(animationSpec = tween(delayMillis = 500)) + fadeIn(
+                        animationSpec = tween(
+                            delayMillis = 500
+                        )
+                    ),
+                    exit = scaleOut(animationSpec = tween(delayMillis = 500)) + fadeOut(
+                        animationSpec = tween(
+                            delayMillis = 500
+                        )
+                    )
+                ) {
+                    RandomWord(
+                        word = randomWord,
+                        isRandomBtnLoading = isRandomBtnLoading,
+                        focusManager = focusManager,
+                        onGetRandomWordBtnClicked = onGetRandomWordBtnClicked,
+                        onAudioBtnClicked = onAudioBtnClicked,
+                        onReadMoreClicked = onReadMoreClicked
+                    )
+                }
+                AnimatedVisibility(
+                    visible = randomWord == null,
+                    enter = scaleIn(animationSpec = tween(durationMillis = 500)) + fadeIn(
+                        animationSpec = tween(
+                            durationMillis = 500
+                        )
+                    ),
+                    exit = scaleOut(animationSpec = tween(durationMillis = 500)) + fadeOut(
+                        animationSpec = tween(
+                            durationMillis = 500
+                        )
+                    )
+                ) {
+                    LottieAnimation(
+                        modifier = Modifier.size(200.dp),
+                        composition = randomWordSectionLoader,
+                        iterations = LottieConstants.IterateForever
+                    )
+                }
+            }
         }
     }
 }
@@ -538,11 +624,19 @@ private fun HomePager(
 private fun TodayWord(
     todayWord: Word?,
     yesterdayWord: Word?,
+    focusManager: FocusManager,
     onAudioBtnClicked: (Word) -> Unit,
     onReadMoreClicked: (String) -> Unit
 ) {
     LazyColumn(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null
+            ) {
+                focusManager.clearFocus()
+            },
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         todayWord?.let {
@@ -575,12 +669,20 @@ private fun TodayWord(
 private fun RandomWord(
     word: Word?,
     isRandomBtnLoading: Boolean,
+    focusManager: FocusManager,
     onGetRandomWordBtnClicked: () -> Unit,
     onAudioBtnClicked: (Word) -> Unit,
     onReadMoreClicked: (String) -> Unit
 ) {
     val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.laoding_anim))
-    LazyColumn {
+    LazyColumn(
+        modifier = Modifier.clickable(
+            interactionSource = remember { MutableInteractionSource() },
+            indication = null
+        ) {
+            focusManager.clearFocus()
+        }
+    ) {
         item {
             word?.let {
                 WordItem(
@@ -667,7 +769,7 @@ private fun WordItem(
                         fontFamily = appFont
                     )
                     Text(
-                        text = Formatter.formatWordPartOfSpeech(word),
+                        text = word.getWordPartOfSpeech(),
                         fontSize = 12.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontFamily = appFont

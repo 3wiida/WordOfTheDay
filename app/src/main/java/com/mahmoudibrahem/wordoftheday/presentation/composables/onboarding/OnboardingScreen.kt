@@ -20,6 +20,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -30,6 +31,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.rememberLottieComposition
 import com.mahmoudibrahem.wordoftheday.R
 import com.mahmoudibrahem.wordoftheday.presentation.ui.theme.appFont
 
@@ -50,6 +55,7 @@ fun OnBoardingScreen(
 private fun OnboardingScreenContent(
     onGetStartedBtnClicked: () -> Unit
 ) {
+    val composition by rememberLottieComposition(spec = LottieCompositionSpec.RawRes(R.raw.onboarding_anim))
     Column(
         Modifier
             .fillMaxSize()
@@ -57,7 +63,7 @@ private fun OnboardingScreenContent(
             .padding(horizontal = 32.dp, vertical = 32.dp)
     ) {
         Image(
-            modifier = Modifier.size(250.dp),
+            modifier = Modifier.size(200.dp),
             painter = painterResource(id = R.drawable.onboarding_app_name),
             contentDescription = stringResource(R.string.image)
         )
@@ -81,19 +87,11 @@ private fun OnboardingScreenContent(
                 .fillMaxHeight(),
             verticalArrangement = Arrangement.Bottom
         ) {
-            Box(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Image(
-                    modifier = Modifier
-                        .align(Alignment.CenterEnd)
-                        .size(300.dp)
-                        .offset(x = 50.dp),
-                    painter = painterResource(id = R.drawable.onboarding_img),
-                    contentDescription = stringResource(id = R.string.image)
-                )
-            }
-
+            LottieAnimation(
+                modifier = Modifier.fillMaxWidth().height(300.dp),
+                composition = composition,
+                iterations = LottieConstants.IterateForever
+            )
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -113,7 +111,7 @@ private fun OnboardingScreenContent(
                 Text(
                     modifier = Modifier.align(Alignment.CenterStart),
                     text = stringResource(R.string.get_started),
-                    color = MaterialTheme.colorScheme.onBackground,
+                    color = MaterialTheme.colorScheme.onPrimary,
                     fontFamily = appFont,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium

@@ -8,7 +8,7 @@ import retrofit2.HttpException
 import java.io.IOException
 import javax.inject.Inject
 
-class GetRandomWordUseCase (
+class GetRandomWordUseCase @Inject constructor (
     private val wordsRepository: WordsRepository
 ) {
     suspend operator fun invoke(): Flow<Resource<String>> = flow {

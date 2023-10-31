@@ -8,12 +8,12 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import javax.inject.Inject
 
-class ReadOnboardingStateUseCase @Inject constructor(
+class ReadLatestDayUseCase @Inject constructor(
     private val dataStoreRepository: DataStoreRepository
 ) {
-    operator fun invoke(): Flow<Boolean?> {
+    operator fun invoke(): Flow<Int?> {
         return flow {
-            val result=dataStoreRepository.readOnboardingOpenedState()
+            val result = dataStoreRepository.readLatestDay()
                 .flowOn(Dispatchers.IO)
                 .first()
             emit(result)

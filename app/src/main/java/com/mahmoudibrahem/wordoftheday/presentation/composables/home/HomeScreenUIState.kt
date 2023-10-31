@@ -2,6 +2,7 @@ package com.mahmoudibrahem.wordoftheday.presentation.composables.home
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.pager.PagerState
+import com.mahmoudibrahem.wordoftheday.core.AppSettings
 import com.mahmoudibrahem.wordoftheday.domain.model.Suggestion
 import com.mahmoudibrahem.wordoftheday.domain.model.Word
 
@@ -14,5 +15,5 @@ data class HomeScreenUIState constructor(
     val todayWord: Word? = null,
     val yesterdayWord: Word? = null,
     val randomWord: Word? = null,
-    val isDarkMode: Boolean = false,
+    val isDarkMode: Boolean = AppSettings.isDarkMode.value,
 )

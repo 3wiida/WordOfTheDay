@@ -9,6 +9,9 @@ import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.google.gson.Gson
+import com.mahmoudibrahem.wordoftheday.domain.model.Error
+import retrofit2.HttpException
 
 fun Modifier.shadow(
     color: Color = Color.Black,
@@ -47,3 +50,13 @@ fun Modifier.shadow(
         }
     }
 )
+
+fun String.ifNotEmpty(block: (String) -> Unit) {
+    if (this.isNotEmpty()) {
+        block(this)
+    }
+}
+
+fun HttpException.convertToErrorModel(): Error {
+    return Gson().fromJson(this.response()?.errorBody()?.string(), Error::class.java)
+}

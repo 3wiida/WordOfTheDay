@@ -1,5 +1,7 @@
 package com.mahmoudibrahem.wordoftheday.presentation.composables.single_word
 
+import android.content.Context
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -32,6 +34,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -39,6 +42,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -60,7 +64,7 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.mahmoudibrahem.wordoftheday.R
-import com.mahmoudibrahem.wordoftheday.core.util.Formatter
+import com.mahmoudibrahem.wordoftheday.core.util.ifNotEmpty
 import com.mahmoudibrahem.wordoftheday.core.util.shadow
 import com.mahmoudibrahem.wordoftheday.domain.model.Meaning
 import com.mahmoudibrahem.wordoftheday.domain.model.Word
@@ -69,6 +73,7 @@ import com.mahmoudibrahem.wordoftheday.presentation.ui.theme.appFont
 @Composable
 fun SingleWordScreen(
     word: String = "",
+    context: Context = LocalContext.current,
     lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current,
     viewModel: SingleWordViewModel = hiltViewModel(),
     onNavigateUp: () -> Unit = {}
@@ -79,9 +84,14 @@ fun SingleWordScreen(
         onBackClicked = onNavigateUp,
         onChangeModeClicked = viewModel::onChangeModeClicked,
         onAudioBtnClicked = viewModel::onAudioButtonClicked,
-        onCopyClicked = viewModel::onCopyClicked,
-        onShareClicked = viewModel::onShareClicked
+        onShareClicked = viewModel::onShareClicked,
+        onCopyClicked = { wordToCopy -> viewModel.onCopyClicked(context, wordToCopy) },
     )
+    LaunchedEffect(key1 = uiState.screenMsg) {
+        uiState.screenMsg.ifNotEmpty {
+            Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+        }
+    }
     DisposableEffect(key1 = lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
@@ -117,7 +127,8 @@ private fun SingleWordScreenContent(
         ScreenHeader(
             onBackClicked = onBackClicked,
             onChangeModeClicked = onChangeModeClicked,
-            isShowImage = !uiState.isLoading && !uiState.isError
+            isShowImage = !uiState.isLoading && !uiState.isError,
+            isDarkMode = uiState.isDarkMode
         )
         AnimatedVisibility(
             visible = uiState.isLoading,
@@ -144,7 +155,7 @@ private fun SingleWordScreenContent(
             }
         }
         AnimatedVisibility(
-            visible = uiState.isError,
+            visible = uiState.isError && uiState.word==null,
             enter = scaleIn(animationSpec = tween(delayMillis = 500)) + fadeIn(
                 animationSpec = tween(
                     delayMillis = 500
@@ -176,7 +187,7 @@ private fun SingleWordScreenContent(
                         fontWeight = FontWeight.Medium,
                         fontFamily = appFont,
                         textAlign = TextAlign.Center,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                 }
             }
@@ -217,7 +228,8 @@ private fun SingleWordScreenContent(
 private fun ScreenHeader(
     onBackClicked: () -> Unit,
     onChangeModeClicked: () -> Unit,
-    isShowImage: Boolean
+    isShowImage: Boolean,
+    isDarkMode: Boolean
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -251,24 +263,39 @@ private fun ScreenHeader(
                 contentDescription = stringResource(R.string.person)
             )
         }
-        Icon(
+        IconButton(
             modifier = Modifier
                 .size(36.dp)
                 .background(
                     color = MaterialTheme.colorScheme.primary,
                     shape = RoundedCornerShape(8.dp)
                 )
-                .padding(8.dp)
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = null
-                ) {
-                    onChangeModeClicked()
-                },
-            painter = painterResource(id = R.drawable.moon_ic),
-            contentDescription = stringResource(R.string.change_mode),
-            tint = MaterialTheme.colorScheme.onPrimary
-        )
+                .padding(8.dp),
+            onClick = onChangeModeClicked
+        ) {
+            AnimatedVisibility(
+                visible = isDarkMode,
+                enter = scaleIn(animationSpec = tween(durationMillis = 500, delayMillis = 500)),
+                exit = scaleOut(animationSpec = tween(durationMillis = 500, delayMillis = 500))
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.moon_ic),
+                    contentDescription = stringResource(R.string.change_mode),
+                    tint = MaterialTheme.colorScheme.onPrimary
+                )
+            }
+            AnimatedVisibility(
+                visible = !isDarkMode,
+                enter = scaleIn(animationSpec = tween(durationMillis = 500, delayMillis = 500)),
+                exit = scaleOut(animationSpec = tween(durationMillis = 500, delayMillis = 500))
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.sun_ic),
+                    contentDescription = stringResource(R.string.change_mode),
+                    tint = MaterialTheme.colorScheme.onPrimary
+                )
+            }
+        }
 
     }
 }
@@ -360,7 +387,7 @@ private fun WordHeader(
             }
             Text(
                 modifier = Modifier.fillMaxWidth(),
-                text = Formatter.formatWordPartOfSpeech(word),
+                text = word.getWordPartOfSpeech(),
                 fontSize = 12.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontFamily = appFont
@@ -511,7 +538,10 @@ private fun WordBody(
                         )
                     }
                     if (index != meaning.definitions.size - 1) {
-                        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        Box(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentAlignment = Alignment.Center
+                        ) {
                             Divider(
                                 modifier = Modifier
                                     .fillMaxWidth(0.9f)

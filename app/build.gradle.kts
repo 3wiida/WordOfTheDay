@@ -77,7 +77,7 @@ dependencies {
     implementation ("com.google.dagger:hilt-android:2.46.1")
     kapt ("com.google.dagger:hilt-android-compiler:2.45")
     kapt ("androidx.hilt:hilt-compiler:1.0.0")
-    implementation ("androidx.hilt:hilt-navigation-compose:1.1.0-beta01")
+    implementation ("androidx.hilt:hilt-navigation-compose:1.1.0-rc01")
 
     // Retrofit
     implementation ("com.squareup.retrofit2:retrofit:2.9.0")
@@ -85,12 +85,17 @@ dependencies {
     implementation ("com.squareup.okhttp3:okhttp:5.0.0-alpha.2")
     implementation ("com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.2")
 
-    // Room
-    implementation ("androidx.room:room-runtime:2.5.2")
-    kapt ("androidx.room:room-compiler:2.3.0")
+    //ROOM
+    implementation ("androidx.room:room-runtime:2.6.0")
+    kapt ("androidx.room:room-compiler:2.6.0")
+    implementation ("androidx.room:room-ktx:2.6.0")
+    implementation ("androidx.room:room-paging:2.6.0")
+
+    // Paging 3.0
+    implementation ("androidx.paging:paging-compose:3.3.0-alpha02")
 
     // Kotlin Extensions and Coroutines support for Room
-    implementation ("androidx.room:room-ktx:2.5.2")
+    implementation ("androidx.room:room-ktx:2.6.0")
 
     //Lottie
     implementation("com.airbnb.android:lottie-compose:6.0.1")

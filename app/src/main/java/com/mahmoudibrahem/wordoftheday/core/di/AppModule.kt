@@ -4,6 +4,7 @@ import android.media.MediaPlayer
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import com.mahmoudibrahem.wordoftheday.MyApplication
+import com.mahmoudibrahem.wordoftheday.data.local.WordDao
 import com.mahmoudibrahem.wordoftheday.data.remote.RandomWordAPI
 import com.mahmoudibrahem.wordoftheday.data.remote.WordAutocompleteAPI
 import com.mahmoudibrahem.wordoftheday.data.remote.WordsAPI
@@ -12,6 +13,7 @@ import com.mahmoudibrahem.wordoftheday.data.repository.WordsRepositoryImpl
 import com.mahmoudibrahem.wordoftheday.domain.repository.DataStoreRepository
 import com.mahmoudibrahem.wordoftheday.domain.repository.WordsRepository
 import com.mahmoudibrahem.wordoftheday.domain.usecase.GetWordsSuggestionsUseCase
+import com.mahmoudibrahem.wordoftheday.domain.usecase.ReadDarkModeStateUseCase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -28,9 +30,10 @@ object AppModule {
     fun provideWordsRepository(
         wordsAPI: WordsAPI,
         randomWordAPI: RandomWordAPI,
-        wordAutocompleteAPI: WordAutocompleteAPI
+        wordAutocompleteAPI: WordAutocompleteAPI,
+        wordDao: WordDao
     ): WordsRepository {
-        return WordsRepositoryImpl(wordsAPI, randomWordAPI, wordAutocompleteAPI)
+        return WordsRepositoryImpl(wordsAPI, randomWordAPI, wordAutocompleteAPI, wordDao)
     }
 
     @Provides
@@ -43,12 +46,6 @@ object AppModule {
     @Singleton
     fun provideMediaPlayer(): MediaPlayer {
         return MediaPlayer()
-    }
-
-    @Provides
-    @Singleton
-    fun provideApp():MyApplication{
-        return MyApplication()
     }
 
 }

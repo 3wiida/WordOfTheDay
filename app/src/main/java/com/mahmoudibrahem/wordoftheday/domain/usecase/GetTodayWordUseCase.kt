@@ -6,11 +6,10 @@ import com.mahmoudibrahem.wordoftheday.domain.repository.WordsRepository
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
-class GetWordDetailsUseCase @Inject constructor(
+class GetTodayWordUseCase @Inject constructor(
     private val wordsRepository: WordsRepository
 ) {
-    suspend operator fun invoke(word: String): Flow<Resource<Word>> {
-        return wordsRepository.getWordDetails(word)
+    suspend operator fun invoke(): Flow<Resource<Word>> {
+        return wordsRepository.getTodayWord()
     }
-
 }

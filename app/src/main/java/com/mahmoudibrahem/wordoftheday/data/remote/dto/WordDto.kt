@@ -1,5 +1,6 @@
 package com.mahmoudibrahem.wordoftheday.data.remote.dto
 
+import com.mahmoudibrahem.wordoftheday.data.local.entity.WordEntity
 import com.mahmoudibrahem.wordoftheday.domain.model.Word
 
 data class WordDto(
@@ -10,8 +11,8 @@ data class WordDto(
     val sourceUrls: List<String>,
     val word: String
 ) {
-    fun toWord(): Word {
-        return Word(
+    fun toWordEntity(): WordEntity {
+        return WordEntity(
             word = word,
             phonetic = phonetic,
             meanings = meanings.map { it.toMeaning() },

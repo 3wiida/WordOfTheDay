@@ -1,8 +1,8 @@
 package com.mahmoudibrahem.wordoftheday.core.di
 
-import com.mahmoudibrahem.wordoftheday.core.Constants.RANDOM_WORD_API_BASE_URL
-import com.mahmoudibrahem.wordoftheday.core.Constants.WORDS_API_BASE_URL
-import com.mahmoudibrahem.wordoftheday.core.Constants.WORD_SUGGESTIONS_BASE_URL
+import com.mahmoudibrahem.wordoftheday.core.util.Constants.RANDOM_WORD_API_BASE_URL
+import com.mahmoudibrahem.wordoftheday.core.util.Constants.WORDS_API_BASE_URL
+import com.mahmoudibrahem.wordoftheday.core.util.Constants.WORD_SUGGESTIONS_BASE_URL
 import com.mahmoudibrahem.wordoftheday.data.remote.RandomWordAPI
 import com.mahmoudibrahem.wordoftheday.data.remote.WordAutocompleteAPI
 import com.mahmoudibrahem.wordoftheday.data.remote.WordsAPI
