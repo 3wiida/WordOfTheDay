@@ -44,6 +44,8 @@ class WordsRepositoryImpl(
                     data = wordDetails
                 )
             )
+        } catch (e: Exception) {
+            Log.d("```TAG```", "invoke: ${e.printStackTrace()}")
         }
 
         val newWordDetails = wordDao.getWordDetails(word)?.toWord()
@@ -74,6 +76,8 @@ class WordsRepositoryImpl(
                     Log.d("```TAG```", "getTodayWord: Not Found")
                 } catch (e: IOException) {
                     emit(Resource.Failure(message = "Can't reach server, check your internet"))
+                } catch (e: Exception) {
+                    Log.d("```TAG```", "invoke: ${e.printStackTrace()}")
                 }
             }
         }

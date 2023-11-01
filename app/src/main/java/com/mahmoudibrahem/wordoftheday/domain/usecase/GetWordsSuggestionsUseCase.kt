@@ -1,5 +1,6 @@
 package com.mahmoudibrahem.wordoftheday.domain.usecase
 
+import android.util.Log
 import com.mahmoudibrahem.wordoftheday.core.util.Resource
 import com.mahmoudibrahem.wordoftheday.data.remote.dto.SuggestionDto
 import com.mahmoudibrahem.wordoftheday.domain.model.Suggestion
@@ -22,6 +23,8 @@ class GetWordsSuggestionsUseCase @Inject constructor(
             e.localizedMessage?.let { emit(Resource.Failure(message = it)) }
         } catch (e: IOException) {
             emit(Resource.Failure(message = "Can't reach server, check your internet"))
+        } catch (e: Exception) {
+            Log.d("```TAG```", "invoke: ${e.printStackTrace()}")
         }
     }
 

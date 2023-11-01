@@ -17,6 +17,7 @@ import com.mahmoudibrahem.wordoftheday.domain.usecase.SaveCurrentDayUseCase
 import com.mahmoudibrahem.wordoftheday.domain.usecase.SaveDarkModeStateUseCase
 import com.mahmoudibrahem.wordoftheday.domain.usecase.StartWordAudioUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -46,13 +47,9 @@ class HomeViewModel @Inject constructor(
     private var searchJob: Job? = null
 
     init {
-        Log.d("````TAG````", "day: ${isNewDay()}")
-        if(isNewDay()){
-            viewModelScope.launch(Dispatchers.IO){
+        if (isNewDay()) {
+            viewModelScope.launch(Dispatchers.IO) {
                 resetHomeWordsUseCase()
-            }
-        }else{
-            viewModelScope.launch(Dispatchers.IO){
                 saveCurrentDayUseCase(Calendar.getInstance().get(Calendar.DAY_OF_MONTH))
             }
         }
@@ -101,7 +98,7 @@ class HomeViewModel @Inject constructor(
 
 
     fun getRandomWordForRandomSection() {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(Dispatchers.IO + CoroutineExceptionHandler { _, _ -> }) {
             getRandomWordUseCase().collectLatest { state ->
                 when (state) {
                     is Resource.Loading -> {
@@ -133,12 +130,11 @@ class HomeViewModel @Inject constructor(
     private fun isNewDay(): Boolean {
         val calendar = Calendar.getInstance()
         val dayOfMonth = calendar.get(Calendar.DAY_OF_MONTH)
-        Log.d("```TAG```", "isNewDay: ld -> ${latestDay.intValue} ------------ dom -> $dayOfMonth")
         return dayOfMonth != latestDay.intValue
     }
 
     private fun getTodayWord() {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(Dispatchers.IO + CoroutineExceptionHandler { _, _ -> }) {
             getTodayWordUseCase().collectLatest { state ->
                 when (state) {
                     is Resource.Loading -> {
@@ -158,7 +154,7 @@ class HomeViewModel @Inject constructor(
     }
 
     private fun getYesterdayWord() {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(Dispatchers.IO + CoroutineExceptionHandler { _, _ -> }) {
             getYesterdayWordUseCase().collectLatest { state ->
                 when (state) {
                     is Resource.Loading -> {}
@@ -175,7 +171,7 @@ class HomeViewModel @Inject constructor(
     }
 
     private fun getRandomWordDetails(word: String) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(Dispatchers.IO + CoroutineExceptionHandler { _, _ -> }) {
             getWordDetailsUseCase(word).collectLatest { state ->
                 when (state) {
                     is Resource.Loading -> {}
@@ -208,7 +204,7 @@ class HomeViewModel @Inject constructor(
 
     private fun getWordSuggestions(query: String) {
         searchJob?.cancel()
-        searchJob = viewModelScope.launch(Dispatchers.IO) {
+        searchJob = viewModelScope.launch(Dispatchers.IO + CoroutineExceptionHandler { _, _ -> }) {
             delay(1000)
             getWordsSuggestionsUseCase(query).collectLatest { state ->
                 when (state) {

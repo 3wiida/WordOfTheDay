@@ -1,35 +1,33 @@
-package com.mahmoudibrahem.wordoftheday.presentation.main
+package com.mahmoudibrahem.wordoftheday.presentation
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.viewModels
-import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.rememberNavController
-import com.mahmoudibrahem.wordoftheday.MyApplication
 import com.mahmoudibrahem.wordoftheday.core.navigation.AppNavigation
 import com.mahmoudibrahem.wordoftheday.core.navigation.AppScreens
 import com.mahmoudibrahem.wordoftheday.core.AppSettings.isDarkMode
-import com.mahmoudibrahem.wordoftheday.core.AppSettings.latestDay
+import com.mahmoudibrahem.wordoftheday.core.AppSettings.isOnboardingOpened
 import com.mahmoudibrahem.wordoftheday.presentation.ui.theme.WordOfTheDayTheme
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-    private val viewModel: MainViewModel by viewModels()
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val keepSplashCondition = MutableStateFlow(true)
 
         enableEdgeToEdge(
             statusBarStyle = SystemBarStyle.light(
@@ -37,20 +35,24 @@ class MainActivity : ComponentActivity() {
             )
         )
 
-        installSplashScreen().setKeepOnScreenCondition { viewModel.isKeepSplash.value }
+        val splashScreen = installSplashScreen()
+
         lifecycleScope.launch {
-            isDarkMode.value = viewModel.isInDarkMode.first() ?: false
-            latestDay.intValue = viewModel.latestDay.first() ?: 0
+            delay(1500)
+            keepSplashCondition.update { false }
         }
+
+        splashScreen.setKeepOnScreenCondition {
+            keepSplashCondition.value
+        }
+
         setContent {
             WordOfTheDayTheme(
                 darkTheme = isDarkMode.value
             ) {
-                val isOnboardingOpened =
-                    viewModel.isOnboardingOpened.collectAsState(initial = false).value ?: false
                 AppNavigation(
                     navController = rememberNavController(),
-                    startDestination = if (isOnboardingOpened) AppScreens.Home.route else AppScreens.Onboarding.route
+                    startDestination = if (isOnboardingOpened.value) AppScreens.Home.route else AppScreens.Onboarding.route
                 )
             }
         }
