@@ -1,6 +1,7 @@
 package com.mahmoudibrahem.wordoftheday.presentation.composables.single_word
 
 import android.content.Context
+import android.os.Build
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
@@ -21,6 +22,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -120,8 +122,9 @@ private fun SingleWordScreenContent(
         modifier = Modifier
             .fillMaxSize()
             .background(color = MaterialTheme.colorScheme.background)
-            .padding(horizontal = 12.dp, vertical = 24.dp)
-            .statusBarsPadding(),
+            .padding(horizontal = 12.dp, vertical = if (Build.VERSION.SDK_INT >= 33) 48.dp else 24.dp)
+            .statusBarsPadding()
+            .navigationBarsPadding(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         ScreenHeader(
@@ -372,7 +375,7 @@ private fun WordHeader(
                         )
                     }
 
-                    IconButton(
+                    /*IconButton(
                         onClick = {
                             onShareClicked(word)
                         }
@@ -382,7 +385,7 @@ private fun WordHeader(
                             contentDescription = stringResource(R.string.copy),
                             tint = Color.Unspecified
                         )
-                    }
+                    }*/
                 }
             }
             Text(
@@ -398,11 +401,6 @@ private fun WordHeader(
             modifier = Modifier
                 .size(width = 45.dp, height = 40.dp)
                 .background(color = Color.Transparent)
-                .shadow(
-                    color = MaterialTheme.colorScheme.outlineVariant,
-                    blurRadius = 24.dp,
-                    offsetY = 8.dp
-                )
         ) {
 
             val path = Path()

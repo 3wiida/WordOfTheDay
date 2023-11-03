@@ -74,6 +74,7 @@ class HomeViewModel @Inject constructor(
     fun onSearchQueryChanged(newQuery: String) {
         _uiState.update { it.copy(searchQuery = newQuery) }
         if (newQuery.isEmpty()) {
+            searchJob?.cancel()
             _uiState.update { it.copy(searchResults = emptyList()) }
         } else {
             getWordSuggestions(query = newQuery)
@@ -205,7 +206,7 @@ class HomeViewModel @Inject constructor(
     private fun getWordSuggestions(query: String) {
         searchJob?.cancel()
         searchJob = viewModelScope.launch(Dispatchers.IO + CoroutineExceptionHandler { _, _ -> }) {
-            delay(1000)
+            delay(500)
             getWordsSuggestionsUseCase(query).collectLatest { state ->
                 when (state) {
                     is Resource.Loading -> {

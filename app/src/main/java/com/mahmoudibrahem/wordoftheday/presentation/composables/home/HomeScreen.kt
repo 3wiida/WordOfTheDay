@@ -2,6 +2,7 @@ package com.mahmoudibrahem.wordoftheday.presentation.composables.home
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.os.Build
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
@@ -159,7 +160,7 @@ private fun HomeScreenContent(
         modifier = Modifier
             .fillMaxSize()
             .background(color = MaterialTheme.colorScheme.background)
-            .padding(horizontal = 12.dp, vertical = 24.dp)
+            .padding(horizontal = 12.dp, vertical = if (Build.VERSION.SDK_INT >= 33) 48.dp else 24.dp)
             .statusBarsPadding()
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },

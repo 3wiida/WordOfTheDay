@@ -29,6 +29,8 @@ class MainActivity : ComponentActivity() {
 
         val keepSplashCondition = MutableStateFlow(true)
 
+        actionBar?.hide()
+
         enableEdgeToEdge(
             statusBarStyle = SystemBarStyle.light(
                 Color.Transparent.toArgb(), Color.Transparent.toArgb()

@@ -43,7 +43,7 @@ val DarkColorPalette = darkColorScheme(
     onSurfaceVariant = Color(0xFF545557),
     outline = Color(0xFF474748),
     onBackground = Color(0xFFffffff),
-    outlineVariant = Color(0x14A2BEF2),
+    outlineVariant = Color(0xAA2BEF2),
     onPrimary = Color(0xFF151517)
 )
 

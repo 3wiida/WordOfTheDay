@@ -1,5 +1,6 @@
 package com.mahmoudibrahem.wordoftheday.presentation.composables.onboarding
 
+import android.os.Build
 import androidx.compose.ui.Alignment
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -12,9 +13,11 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -59,8 +62,10 @@ private fun OnboardingScreenContent(
     Column(
         Modifier
             .fillMaxSize()
+            .statusBarsPadding()
+            .navigationBarsPadding()
             .background(color = MaterialTheme.colorScheme.background)
-            .padding(horizontal = 32.dp, vertical = 32.dp)
+            .padding(horizontal = 24.dp, if (Build.VERSION.SDK_INT >= 33) 24.dp else 12.dp)
     ) {
         Image(
             modifier = Modifier.size(200.dp),
