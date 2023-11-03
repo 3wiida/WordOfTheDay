@@ -54,6 +54,7 @@ class MainActivity : ComponentActivity() {
             ) {
                 AppNavigation(
                     navController = rememberNavController(),
+                    host = this,
                     startDestination = if (isOnboardingOpened.value) AppScreens.Home.route else AppScreens.Onboarding.route
                 )
             }

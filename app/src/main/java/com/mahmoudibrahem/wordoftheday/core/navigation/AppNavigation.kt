@@ -1,5 +1,6 @@
 package com.mahmoudibrahem.wordoftheday.core.navigation
 
+import android.app.Activity
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -11,7 +12,8 @@ import com.mahmoudibrahem.wordoftheday.presentation.composables.single_word.Sing
 @Composable
 fun AppNavigation(
     navController: NavHostController,
-    startDestination: String
+    startDestination: String,
+    host: Activity
 ) {
     NavHost(
         navController = navController,
@@ -21,7 +23,8 @@ fun AppNavigation(
             OnBoardingScreen(
                 onNavigateToHome = {
                     navController.navigate(AppScreens.Home.route)
-                }
+                },
+                easyPermissionHost = host
             )
         }
         composable(route = AppScreens.Home.route) {

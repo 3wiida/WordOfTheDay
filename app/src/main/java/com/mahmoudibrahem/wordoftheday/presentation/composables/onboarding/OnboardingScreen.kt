@@ -1,6 +1,8 @@
 package com.mahmoudibrahem.wordoftheday.presentation.composables.onboarding
 
+import android.app.Activity
 import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.ui.Alignment
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -14,7 +16,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -23,17 +24,21 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.LifecycleOwner
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
@@ -41,9 +46,12 @@ import com.airbnb.lottie.compose.rememberLottieComposition
 import com.mahmoudibrahem.wordoftheday.R
 import com.mahmoudibrahem.wordoftheday.presentation.ui.theme.appFont
 
+
 @Composable
 fun OnBoardingScreen(
     viewModel: OnboardingViewModel = hiltViewModel(),
+    lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current,
+    easyPermissionHost: Activity,
     onNavigateToHome: () -> Unit = {}
 ) {
     OnboardingScreenContent(
@@ -52,6 +60,18 @@ fun OnBoardingScreen(
             onNavigateToHome()
         }
     )
+
+    DisposableEffect(key1 = lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                viewModel.requestNotificationPermission(easyPermissionHost)
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
 }
 
 @Composable
@@ -93,7 +113,9 @@ private fun OnboardingScreenContent(
             verticalArrangement = Arrangement.Bottom
         ) {
             LottieAnimation(
-                modifier = Modifier.fillMaxWidth().height(300.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(300.dp),
                 composition = composition,
                 iterations = LottieConstants.IterateForever
             )
@@ -130,11 +152,4 @@ private fun OnboardingScreenContent(
             }
         }
     }
-}
-
-
-@Preview(showSystemUi = true)
-@Composable
-private fun OnboardingScreenPreview() {
-    OnBoardingScreen()
 }

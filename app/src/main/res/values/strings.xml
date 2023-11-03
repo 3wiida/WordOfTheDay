@@ -28,4 +28,5 @@
     <string name="read_more">Read More</string>
     <string name="synonyms">- Synonyms : </string>
     <string name="antonyms">- Antonyms : </string>
+    <string name="permission_rational">We need this permission to be able to notify you about the new word every day</string>
 </resources>
