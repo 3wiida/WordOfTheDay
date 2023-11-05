@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "333657967361",
+    "project_id": "word-of-the-day-105d1",
+    "storage_bucket": "word-of-the-day-105d1.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:333657967361:android:6dc5cc67f4978efd6ba900",
+        "android_client_info": {
+          "package_name": "com.mahmoudibrahem.wordoftheday"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDr0tz_njjgLdJKwbsscGUltnHoBoKMUYg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

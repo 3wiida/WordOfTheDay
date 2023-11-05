@@ -1,7 +1,6 @@
 package com.mahmoudibrahem.wordoftheday.presentation.composables.single_word
 
 import android.content.Context
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mahmoudibrahem.wordoftheday.core.AppSettings
@@ -47,11 +46,11 @@ class SingleWordViewModel @Inject constructor(
                     }
 
                     is Resource.Loading -> {
-                        _uiState.update { it.copy(isLoading = true, word = state.data) }
+                        _uiState.update { it.copy(isLoading = true) }
                     }
 
                     is Resource.Success -> {
-                        _uiState.update { it.copy(word = state.data, isLoading = false) }
+                        _uiState.update { it.copy(isLoading = false, word = state.data) }
                     }
                 }
             }
