@@ -210,14 +210,21 @@ class HomeViewModel @Inject constructor(
             getWordsSuggestionsUseCase(query).collectLatest { state ->
                 when (state) {
                     is Resource.Loading -> {
-                        _uiState.update { it.copy(isSearchLoading = true, screenMsg = "") }
+                        _uiState.update {
+                            it.copy(
+                                isSearchLoading = true,
+                                screenMsg = "",
+                                searchResults = state.data ?: emptyList()
+                            )
+                        }
                     }
 
                     is Resource.Failure -> {
                         _uiState.update {
                             it.copy(
                                 isSearchLoading = false,
-                                screenMsg = state.message.toString()
+                                screenMsg = state.message.toString(),
+                                searchResults = state.data ?: emptyList()
                             )
                         }
                     }

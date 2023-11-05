@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import com.mahmoudibrahem.wordoftheday.data.local.entity.SuggestionEntity
 import com.mahmoudibrahem.wordoftheday.data.local.entity.WordEntity
 
 @Dao
@@ -30,4 +31,12 @@ interface WordDao {
     @Query("UPDATE word_table SET isYesterdayWord = 0 WHERE isYesterdayWord=1")
     suspend fun resetYesterdayWord()
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertSuggestions(suggestion: SuggestionEntity)
+
+    @Query("SELECT * FROM search_suggestion_table WHERE suggestion LIKE '%' || :query || '%' ")
+    suspend fun getSuggestions(query: String): List<SuggestionEntity>
+
+    @Query("DELETE FROM search_suggestion_table WHERE suggestion LIKE  '%' || :query || '%' ")
+    suspend fun deleteOldSuggestions(query: String)
 }

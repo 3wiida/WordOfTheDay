@@ -1,12 +1,12 @@
 package com.mahmoudibrahem.wordoftheday.data.remote.dto
 
-import com.mahmoudibrahem.wordoftheday.domain.model.Suggestion
+import com.mahmoudibrahem.wordoftheday.data.local.entity.SuggestionEntity
 
 data class SuggestionDto(
     val score: Int,
     val word: String
 ) {
-    fun toSuggestion(): Suggestion {
-        return Suggestion(word = word)
+    fun toSuggestionEntity(): SuggestionEntity {
+        return SuggestionEntity(suggestion = word)
     }
 }

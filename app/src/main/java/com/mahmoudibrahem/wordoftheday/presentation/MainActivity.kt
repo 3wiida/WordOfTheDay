@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.material3.Surface
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
@@ -52,14 +53,15 @@ class MainActivity : ComponentActivity() {
             WordOfTheDayTheme(
                 darkTheme = isDarkMode.value
             ) {
-                AppNavigation(
-                    navController = rememberNavController(),
-                    host = this,
-                    startDestination = if (isOnboardingOpened.value) AppScreens.Home.route else AppScreens.Onboarding.route
-                )
+                Surface {
+                    AppNavigation(
+                        navController = rememberNavController(),
+                        host = this,
+                        startDestination = if (isOnboardingOpened.value) AppScreens.Home.route else AppScreens.Onboarding.route
+                    )
+                }
             }
         }
-
     }
 
 }

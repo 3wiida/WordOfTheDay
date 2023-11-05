@@ -11,6 +11,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.displayCutoutPadding
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -82,9 +83,10 @@ private fun OnboardingScreenContent(
     Column(
         Modifier
             .fillMaxSize()
-            .statusBarsPadding()
-            .navigationBarsPadding()
             .background(color = MaterialTheme.colorScheme.background)
+            .statusBarsPadding()
+            .displayCutoutPadding()
+            .navigationBarsPadding()
             .padding(horizontal = 24.dp, if (Build.VERSION.SDK_INT >= 33) 24.dp else 12.dp)
     ) {
         Image(

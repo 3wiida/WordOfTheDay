@@ -21,10 +21,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.displayCutoutPadding
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -160,8 +162,13 @@ private fun HomeScreenContent(
         modifier = Modifier
             .fillMaxSize()
             .background(color = MaterialTheme.colorScheme.background)
-            .padding(horizontal = 12.dp, vertical = if (Build.VERSION.SDK_INT >= 33) 48.dp else 24.dp)
             .statusBarsPadding()
+            .displayCutoutPadding()
+            .navigationBarsPadding()
+            .padding(
+                horizontal = 12.dp,
+                vertical = if (Build.VERSION.SDK_INT >= 33) 48.dp else 24.dp
+            )
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null
@@ -354,8 +361,8 @@ private fun SearchWidget(
                         )
                     },
                     textStyle = MaterialTheme.typography.labelMedium,
-
-                    )
+                    singleLine = true
+                )
             }
 
             if (isLoading) {

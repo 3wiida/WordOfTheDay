@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.displayCutoutPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -96,7 +97,7 @@ fun SingleWordScreen(
     }
     DisposableEffect(key1 = lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) {
+            if (event == Lifecycle.Event.ON_CREATE) {
                 viewModel.getWordDetails(word)
             }
         }
@@ -122,9 +123,10 @@ private fun SingleWordScreenContent(
         modifier = Modifier
             .fillMaxSize()
             .background(color = MaterialTheme.colorScheme.background)
-            .padding(horizontal = 12.dp, vertical = if (Build.VERSION.SDK_INT >= 33) 48.dp else 24.dp)
             .statusBarsPadding()
-            .navigationBarsPadding(),
+            .displayCutoutPadding()
+            .navigationBarsPadding()
+            .padding(horizontal = 12.dp, vertical = if (Build.VERSION.SDK_INT >= 33) 48.dp else 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         ScreenHeader(

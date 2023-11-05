@@ -22,7 +22,11 @@ fun AppNavigation(
         composable(route = AppScreens.Onboarding.route) {
             OnBoardingScreen(
                 onNavigateToHome = {
-                    navController.navigate(AppScreens.Home.route)
+                    navController.navigate(AppScreens.Home.route) {
+                        popUpTo(route = AppScreens.Onboarding.route) {
+                            inclusive = true
+                        }
+                    }
                 },
                 easyPermissionHost = host
             )

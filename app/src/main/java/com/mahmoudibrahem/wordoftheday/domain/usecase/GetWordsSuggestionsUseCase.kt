@@ -14,18 +14,8 @@ import javax.inject.Inject
 class GetWordsSuggestionsUseCase @Inject constructor(
     private val wordsRepository: WordsRepository
 ) {
-    suspend operator fun invoke(query: String): Flow<Resource<List<Suggestion>>> = flow {
-        try {
-            emit(Resource.Loading())
-            val suggestions = wordsRepository.getWordSuggestions(query).map { it.toSuggestion() }
-            emit(Resource.Success(suggestions))
-        } catch (e: HttpException) {
-            e.localizedMessage?.let { emit(Resource.Failure(message = it)) }
-        } catch (e: IOException) {
-            emit(Resource.Failure(message = "Can't reach server, check your internet"))
-        } catch (e: Exception) {
-            Log.d("```TAG```", "invoke: ${e.printStackTrace()}")
-        }
+    suspend operator fun invoke(query: String): Flow<Resource<List<Suggestion>>> {
+        return wordsRepository.getWordSuggestions(query)
     }
 
 }

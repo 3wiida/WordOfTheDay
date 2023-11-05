@@ -5,6 +5,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import com.mahmoudibrahem.wordoftheday.MyApplication
 import com.mahmoudibrahem.wordoftheday.data.local.WordDao
+import com.mahmoudibrahem.wordoftheday.data.local.WordDatabase
 import com.mahmoudibrahem.wordoftheday.data.remote.RandomWordAPI
 import com.mahmoudibrahem.wordoftheday.data.remote.WordAutocompleteAPI
 import com.mahmoudibrahem.wordoftheday.data.remote.WordsAPI
@@ -31,9 +32,9 @@ object AppModule {
         wordsAPI: WordsAPI,
         randomWordAPI: RandomWordAPI,
         wordAutocompleteAPI: WordAutocompleteAPI,
-        wordDao: WordDao
+        db: WordDatabase
     ): WordsRepository {
-        return WordsRepositoryImpl(wordsAPI, randomWordAPI, wordAutocompleteAPI, wordDao)
+        return WordsRepositoryImpl(wordsAPI, randomWordAPI, wordAutocompleteAPI, db)
     }
 
     @Provides
