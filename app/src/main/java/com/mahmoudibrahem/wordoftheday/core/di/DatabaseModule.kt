@@ -23,10 +23,4 @@ object DatabaseModule {
             .build()
     }
 
-
-    @Provides
-    @Singleton
-    fun provideWordDao(db: WordDatabase): WordDao {
-        return db.wordDao
-    }
 }

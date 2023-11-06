@@ -19,8 +19,6 @@ interface WordsRepository {
 
     suspend fun getYesterdayWord(): Flow<Resource<Word>>
 
-    suspend fun resetTodayWord()
-
-    suspend fun resetYesterdayWord()
+    suspend fun resetHomeTodaySection()
 
 }

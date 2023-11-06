@@ -119,21 +119,16 @@ class WordsRepositoryImpl(
     override suspend fun getYesterdayWord(): Flow<Resource<Word>> = flow {
         emit(Resource.Loading())
         val localYesterdayWord = db.wordDao.getYesterdayWord()
-        localYesterdayWord?.let {
-            emit(Resource.Success(it.toWord()))
-        }
+        localYesterdayWord?.let { emit(Resource.Success(it.toWord())) }
     }
 
-    override suspend fun resetTodayWord() {
-        db.wordDao.resetTodayWord()
-    }
-
-    override suspend fun resetYesterdayWord() {
+    override suspend fun resetHomeTodaySection() {
         db.withTransaction {
             db.wordDao.resetYesterdayWord()
             db.wordDao.getTodayWord()?.let {
                 db.wordDao.insertWord(it.copy(isYesterdayWord = 1))
             }
+            db.wordDao.resetTodayWord()
         }
     }
 }

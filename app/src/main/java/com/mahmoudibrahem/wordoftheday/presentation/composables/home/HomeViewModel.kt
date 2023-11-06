@@ -4,7 +4,6 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mahmoudibrahem.wordoftheday.core.AppSettings
-import com.mahmoudibrahem.wordoftheday.core.AppSettings.latestDay
 import com.mahmoudibrahem.wordoftheday.core.util.Resource
 import com.mahmoudibrahem.wordoftheday.domain.model.Word
 import com.mahmoudibrahem.wordoftheday.domain.usecase.GetRandomWordUseCase
@@ -12,8 +11,6 @@ import com.mahmoudibrahem.wordoftheday.domain.usecase.GetTodayWordUseCase
 import com.mahmoudibrahem.wordoftheday.domain.usecase.GetWordDetailsUseCase
 import com.mahmoudibrahem.wordoftheday.domain.usecase.GetWordsSuggestionsUseCase
 import com.mahmoudibrahem.wordoftheday.domain.usecase.GetYesterdayWordUseCase
-import com.mahmoudibrahem.wordoftheday.domain.usecase.ResetHomeWordsUseCase
-import com.mahmoudibrahem.wordoftheday.domain.usecase.SaveCurrentDayUseCase
 import com.mahmoudibrahem.wordoftheday.domain.usecase.SaveDarkModeStateUseCase
 import com.mahmoudibrahem.wordoftheday.domain.usecase.StartWordAudioUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -26,7 +23,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.util.Calendar
 import javax.inject.Inject
 
 @HiltViewModel
@@ -37,9 +33,7 @@ class HomeViewModel @Inject constructor(
     private val startWordAudioUseCase: StartWordAudioUseCase,
     private val saveDarkModeStateUseCase: SaveDarkModeStateUseCase,
     private val getTodayWordUseCase: GetTodayWordUseCase,
-    private val getYesterdayWordUseCase: GetYesterdayWordUseCase,
-    private val saveCurrentDayUseCase: SaveCurrentDayUseCase,
-    private val resetHomeWordsUseCase: ResetHomeWordsUseCase
+    private val getYesterdayWordUseCase: GetYesterdayWordUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeScreenUIState())
@@ -47,12 +41,6 @@ class HomeViewModel @Inject constructor(
     private var searchJob: Job? = null
 
     init {
-        if (isNewDay()) {
-            viewModelScope.launch(Dispatchers.IO) {
-                resetHomeWordsUseCase()
-                saveCurrentDayUseCase(Calendar.getInstance().get(Calendar.DAY_OF_MONTH))
-            }
-        }
         getTodayWord()
         getYesterdayWord()
         getRandomWordForRandomSection()
@@ -126,12 +114,6 @@ class HomeViewModel @Inject constructor(
                 }
             }
         }
-    }
-
-    private fun isNewDay(): Boolean {
-        val calendar = Calendar.getInstance()
-        val dayOfMonth = calendar.get(Calendar.DAY_OF_MONTH)
-        return dayOfMonth != latestDay.intValue
     }
 
     private fun getTodayWord() {

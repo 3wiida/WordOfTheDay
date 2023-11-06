@@ -7,7 +7,6 @@ class ResetHomeWordsUseCase @Inject constructor(
     private val wordsRepository: WordsRepository
 ) {
     suspend operator fun invoke() {
-        wordsRepository.resetYesterdayWord()
-        wordsRepository.resetTodayWord()
+        wordsRepository.resetHomeTodaySection()
     }
 }
